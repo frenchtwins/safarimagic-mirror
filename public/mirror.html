@@ -84,6 +84,16 @@
         position: relative;
         overflow: hidden;
     }
+    .phone-screen > .live-frame {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        border-radius: 37px;
+        z-index: 50;
+        display: none;
+    }
+    .phone-screen > .live-frame.active { display: block; }
     .phone-url-bar {
         background: #2c2c2e;
         border-radius: 10px;
@@ -105,14 +115,6 @@
         position: relative;
         height: calc(100% - 60px);
     }
-    .live-frame {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 0 0 28px 28px;
-        display: none;
-    }
-    .live-frame.active { display: block; }
     .typing-display {
         font-size: 28px;
         font-weight: 600;
@@ -306,9 +308,9 @@
                     <span class="lock">🔒</span> Rechercher ou saisir un site
                 </div>
                 <div class="phone-content" id="phoneContent">
-                    <img class="live-frame" id="liveFrame" alt="Live" />
                     <div class="typing-display" id="phoneTyping"></div>
                 </div>
+                <img class="live-frame" id="liveFrame" alt="Live" />
                 <div class="touch-dot" id="touchDot" style="display:none;"></div>
             </div>
         </div>
@@ -407,6 +409,7 @@ function handleEvent(msg) {
 }
 
 function addEvent(event, animate) {
+    if (event.type === 'screen') return;
     if (event.type === 'touch' && event.touchType === 'move') return;
     if (event.type === 'scroll') {
         var ls = events.filter(function(e) { return e.type === 'scroll'; });
