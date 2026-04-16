@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Safari">
+  <link rel="manifest" href="/app/manifest.json">
+  <link rel="apple-touch-icon" href="/app/icon-192.png">
+  <title>Safari</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #f2f2f7;
+      --card: #fff;
+      --text: #000;
+      --text2: #8e8e93;
+      --bar: #e5e5ea;
+      --blue: #007AFF;
+      --border: #c6c6c8;
+      --toolbar-bg: rgba(249,249,249,0.94);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000;
+        --card: #1c1c1e;
+        --text: #fff;
+        --text2: #8e8e93;
+        --bar: #1c1c1e;
+        --border: #38383a;
+        --toolbar-bg: rgba(28,28,30,0.94);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* ===== Search Bar ===== */
+    .search-bar-wrap {
+      padding: 8px 16px;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--bar);
+      border-radius: 12px;
+      cursor: text;
+    }
+    .search-bar svg { flex-shrink: 0; opacity: 0.5; }
+    .search-bar span { color: var(--text2); font-size: 17px; }
+    .search-bar .mic { margin-left: auto; opacity: 0.4; }
+
+    /* ===== Scrollable Content ===== */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 70px;
+    }
+
+    /* ===== Favorites Section ===== */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 16px 12px;
+    }
+    .section-title {
+      font-size: 21px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-link { color: var(--blue); font-size: 15px; }
+
+    .fav-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px 8px;
+      padding: 0 16px;
+    }
+    .fav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      -webkit-touch-callout: none;
+    }
+    .fav-icon {
+      width: 60px; height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff;
+      font-size: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      position: relative;
+    }
+    .fav-icon.light-bg {
+      border: 0.5px solid var(--border);
+      color: #333;
+    }
+    .fav-label {
+      font-size: 11px;
+      color: var(--text);
+      max-width: 72px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ===== Suggestions ===== */
+    .suggestions-scroll {
+      display: flex;
+      gap: 12px;
+      padding: 0 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+    }
+    .suggestions-scroll::-webkit-scrollbar { display: none; }
+    .sug-card {
+      flex-shrink: 0;
+      width: 46vw;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--card);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      scroll-snap-align: start;
+      text-decoration: none;
+    }
+    .sug-img {
+      aspect-ratio: 16/12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .sug-info { padding: 12px; }
+    .sug-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .sug-domain { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .sug-date { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+    /* ===== Bottom Toolbar ===== */
+    .toolbar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 50px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      background: var(--toolbar-bg);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 100;
+    }
+    .toolbar button {
+      background: none; border: none;
+      color: var(--blue); font-size: 20px;
+      padding: 8px 12px; opacity: 0.5;
+    }
+    .tab-count {
+      border: 1.5px solid var(--blue);
+      border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--blue); opacity: 0.5;
+    }
+
+    /* ===== Search Overlay ===== */
+    .search-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg);
+      z-index: 200;
+      flex-direction: column;
+    }
+    .search-overlay.active { display: flex; }
+
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      gap: 12px;
+      background: var(--bg);
+    }
+    .search-input {
+      flex: 1;
+      padding: 10px 12px;
+      background: var(--bar);
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      color: var(--text);
+      outline: none;
+      font-family: inherit;
+    }
+    .search-input::placeholder { color: var(--text2); }
+    .search-cancel {
+      color: var(--blue);
+      font-size: 17px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .search-history {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 17px;
+      color: var(--text);
+    }
+    .history-item svg { flex-shrink: 0; opacity: 0.4; }
+
+    /* ===== Web View (iframe fallback) ===== */
+    .webview-wrap {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 300;
+      flex-direction: column;
+      background: var(--bg);
+    }
+    .webview-wrap.active { display: flex; }
+
+    .web-url-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      gap: 8px;
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      flex-shrink: 0;
+    }
+    .web-url-bar .url-display {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      background: var(--bar);
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .web-url-bar .lock { font-size: 11px; }
+
+    .webview-frame {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+
+    .web-toolbar {
+      height: 50px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      background: var(--toolbar-bg);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-shrink: 0;
+    }
+    .web-toolbar button {
+      background: none; border: none;
+      color: var(--blue); font-size: 20px;
+      padding: 8px 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <div class="search-bar-wrap">
+    <div class="search-bar" id="searchBarBtn">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.16a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
+      </svg>
+      <span>Rechercher ou saisir un site</span>
+      <svg class="mic" width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
+        <path d="M6 10a3 3 0 0 0 3-3V3a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-4 4.9V14h2v2H3v-2h2v-2.1A5 5 0 0 1 1 7h2a3 3 0 0 0 6 0h2z"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Favoris -->
+    <div class="section-header">
+      <div class="section-title">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" opacity="0.6">
+          <path d="M8 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-6 8a6 6 0 0 1 12 0H2z"/>
+        </svg>
+        Favoris
+      </div>
+      <span class="section-link">En afficher moins</span>
+    </div>
+
+    <div class="fav-grid" id="favGrid">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- Suggestions -->
+    <div class="section-header" style="padding-top:24px">
+      <div class="section-title">Suggestions</div>
+      <span class="section-link">Tout afficher ›</span>
+    </div>
+
+    <div class="suggestions-scroll" id="sugScroll">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button>&#9664;</button>
+    <button>&#9654;</button>
+    <button>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1v10M10 1l4 4M10 1L6 5M3 11v5a3 3 0 003 3h8a3 3 0 003-3v-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h16M2 4v14a2 2 0 002 2h12a2 2 0 002-2V4M6 4V2h8v2"/></svg>
+    </button>
+    <div class="tab-count">3</div>
+  </div>
+
+  <!-- ===== SEARCH OVERLAY ===== -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-input-wrap">
+      <input type="text" class="search-input" id="searchInput" placeholder="Rechercher ou saisir un site" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <button class="search-cancel" id="cancelBtn">Annuler</button>
+    </div>
+    <div class="search-history" id="historyList">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- ===== WEB VIEW (after search) ===== -->
+  <div class="webview-wrap" id="webviewWrap">
+    <div class="web-url-bar" id="webUrlBar">
+      <div class="url-display" id="urlDisplay">
+        <span class="lock">🔒</span>
+        <span id="urlText">google.com</span>
+      </div>
+    </div>
+    <iframe class="webview-frame" id="webFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
+    <div class="web-toolbar">
+      <button id="webBack">&#9664;</button>
+      <button>&#9654;</button>
+      <button>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1v10M10 1l4 4M10 1L6 5M3 11v5a3 3 0 003 3h8a3 3 0 003-3v-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+      <button>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h16M2 4v14a2 2 0 002 2h12a2 2 0 002-2V4M6 4V2h8v2"/></svg>
+      </button>
+      <div class="tab-count">3</div>
+    </div>
+  </div>
+
+  <script>
+    // ===== CONFIG =====
+    const MIRROR_URL = window.location.origin;
+    const searchHistory = ['Les French Twins', 'tour de magie', 'magic tricks'];
+
+    // ===== FAVORITES DATA (matching iOS app) =====
+    const favorites = [
+      { name: 'Dropbox', icon: 'D', color: '#0061FF', url: 'https://www.dropbox.com' },
+      { name: 'YouTube', icon: '▶', color: '#FF0000', url: 'https://www.youtube.com' },
+      { name: 'TripAdvisor', icon: '🦉', color: '#34E0A1', url: 'https://www.tripadvisor.com' },
+      { name: 'Facebook', icon: 'f', color: '#1877F2', url: 'https://www.facebook.com' },
+      { name: 'Google Tra...', icon: 'G文', color: '#4285F4', url: 'https://translate.google.com', smallFont: true },
+      { name: 'Boîte de ré...', icon: 'B', color: '#4285F4', url: 'https://mail.google.com' },
+      { name: 'Apple', icon: '', color: '#555555', url: 'https://www.apple.com' },
+      { name: 'Les French...', icon: 'L', color: '#1a1a2e', url: 'https://www.lesfrenchtwins.com' },
+      { name: 'LinkedIn', icon: 'in', color: '#0A66C2', url: 'https://www.linkedin.com', smallFont: true },
+      { name: 'Google', icon: 'G', color: '#ffffff', url: 'https://www.google.com', light: true },
+      { name: 'Facebook', icon: 'f', color: '#1877F2', url: 'https://www.facebook.com' },
+      { name: 'Yahoo', icon: 'Y', color: '#7B0099', url: 'https://www.yahoo.com' },
+    ];
+
+    const suggestions = [
+      { title: 'ChatGPT', domain: 'chatgpt.com', date: 'Avant-hier', url: 'https://chatgpt.com', gradient: 'linear-gradient(135deg,#74b9ff,#a29bfe,#fd79a8)' },
+      { title: 'Google', domain: 'google.com', date: "Aujourd'hui", url: 'https://www.google.com', gradient: 'linear-gradient(135deg,#4285F4,#34A853,#FBBC05)' },
+    ];
+
+    // ===== RENDER FAVORITES =====
+    const grid = document.getElementById('favGrid');
+    favorites.forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'fav-item';
+      div.onclick = () => doNavigate(f.url, f.name);
+      const isApple = f.icon === '';
+      const isSmall = f.smallFont || (f.icon && f.icon.length > 1 && !isApple);
+      div.innerHTML = `
+        <div class="fav-icon ${f.light ? 'light-bg' : ''}" style="background:${f.color}">
+          ${isApple ? '<svg width="28" height="28" viewBox="0 0 28 28" fill="white"><text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" font-size="24" font-family="-apple-system">&#xF8FF;</text></svg>'
+            : `<span style="font-size:${isSmall ? '18px' : '28px'}">${f.icon}</span>`}
+        </div>
+        <div class="fav-label">${f.name}</div>
+      `;
+      grid.appendChild(div);
+    });
+
+    // ===== RENDER SUGGESTIONS =====
+    const sugScroll = document.getElementById('sugScroll');
+    suggestions.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'sug-card';
+      div.onclick = () => doNavigate(s.url, s.title);
+      div.innerHTML = `
+        <div class="sug-img" style="background:${s.gradient}">${s.title}</div>
+        <div class="sug-info">
+          <div class="sug-title">${s.title}</div>
+          <div class="sug-domain">${s.domain}</div>
+          <div class="sug-date">${s.date}</div>
+        </div>
+      `;
+      sugScroll.appendChild(div);
+    });
+
+    // ===== SEARCH OVERLAY =====
+    document.getElementById('searchBarBtn').onclick = openSearch;
+    document.getElementById('cancelBtn').onclick = closeSearch;
+    document.getElementById('webBack').onclick = goHome;
+    document.getElementById('webUrlBar').onclick = openSearch;
+
+    function openSearch() {
+      const overlay = document.getElementById('searchOverlay');
+      overlay.classList.add('active');
+      const input = document.getElementById('searchInput');
+      input.value = '';
+      setTimeout(() => input.focus(), 100);
+      renderHistory();
+    }
+
+    function closeSearch() {
+      document.getElementById('searchOverlay').classList.remove('active');
+      document.getElementById('searchInput').blur();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      searchHistory.forEach(q => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" opacity="0.3">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242 1.16a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
+          </svg>
+          ${q}
+        `;
+        div.onclick = () => doSearch(q);
+        list.appendChild(div);
+      });
+    }
+
+    // ===== SEARCH: Submit =====
+    document.getElementById('searchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const q = e.target.value.trim();
+        if (q) doSearch(q);
+      }
+    });
+
+    function doSearch(query) {
+      closeSearch();
+
+      // Update history
+      const idx = searchHistory.indexOf(query);
+      if (idx > -1) searchHistory.splice(idx, 1);
+      searchHistory.unshift(query);
+      if (searchHistory.length > 15) searchHistory.length = 15;
+
+      // Build URL
+      let url;
+      if (query.includes('.') && !query.includes(' ')) {
+        url = query.startsWith('http') ? query : 'https://' + query;
+      } else {
+        url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+      }
+
+      // Send to mirror
+      sendToMirror(query, url, 'search');
+
+      // Navigate
+      showWebView(url);
+    }
+
+    function doNavigate(url, name) {
+      sendToMirror(name, url, 'navigate');
+      showWebView(url);
+    }
+
+    // ===== WEB VIEW =====
+    function showWebView(url) {
+      const wrap = document.getElementById('webviewWrap');
+      wrap.classList.add('active');
+
+      try {
+        const parsed = new URL(url);
+        document.getElementById('urlText').textContent = parsed.hostname.replace('www.', '');
+      } catch {
+        document.getElementById('urlText').textContent = url;
+      }
+
+      // Try iframe first, fallback to redirect
+      const frame = document.getElementById('webFrame');
+      frame.src = url;
+
+      // If iframe blocks (most sites do), redirect after short delay
+      frame.onerror = () => { window.location.href = url; };
+
+      // Fallback: if iframe is empty after 2s, redirect
+      setTimeout(() => {
+        try {
+          // Check if iframe loaded (will throw if cross-origin)
+          const test = frame.contentWindow.location.href;
+        } catch(e) {
+          // Cross-origin = it loaded something, that's fine
+        }
+      }, 2000);
+    }
+
+    function goHome() {
+      document.getElementById('webviewWrap').classList.remove('active');
+      document.getElementById('webFrame').src = 'about:blank';
+    }
+
+    // ===== SEND TO MIRROR =====
+    function sendToMirror(query, url, type) {
+      fetch(MIRROR_URL + '/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, url, type })
+      }).catch(() => {});
+    }
+
+    // ===== SERVICE WORKER for offline =====
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/app/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

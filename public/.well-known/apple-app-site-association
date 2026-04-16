@@ -1,0 +1,24 @@
+{
+  "appclips": {
+    "apps": [
+      "THB88QGZK5.com.lesfrenchtwins.safarimagic.Clip"
+    ]
+  },
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "THB88QGZK5.com.lesfrenchtwins.safarimagic",
+          "THB88QGZK5.com.lesfrenchtwins.safarimagic.Clip"
+        ],
+        "components": [
+          {
+            "/": "/clip/*",
+            "comment": "App Clip invocation"
+          }
+        ]
+      }
+    ]
+  }
+}

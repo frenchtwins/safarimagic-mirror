@@ -24,6 +24,20 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// Apple App Site Association — doit être servi en JSON sans extension
+app.get('/.well-known/apple-app-site-association', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(__dirname, 'public', '.well-known', 'apple-app-site-association'));
+});
+
+// Page App Clip invocation
+app.get('/clip', (req, res) => {
+  res.redirect('/');
+});
+app.get('/clip/*', (req, res) => {
+  res.redirect('/');
+});
+
 // Servir la page miroir
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
