@@ -341,6 +341,9 @@ var ws = null;
 var events = [];
 var currentTyping = '';
 var isFullscreen = false;
+var isTyping = false;
+var lastNavUrl = '';
+var lastNavTime = 0;
 
 function connect() {
     var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -410,7 +413,20 @@ function handleEvent(msg) {
 
 function addEvent(event, animate) {
     if (event.type === 'screen') return;
-    if (event.type === 'touch' && event.touchType === 'move') return;
+    if (event.type === 'ping') return;
+    // Filter noisy touch events from timeline
+    if (event.type === 'touch') return;
+    // Deduplicate navigate events (same URL within 3s)
+    if (event.type === 'navigate' || event.type === 'page_loaded') {
+        var url = event.url || '';
+        var now = Date.now();
+        if (url === lastNavUrl && now - lastNavTime < 3000) {
+            return; // Skip duplicate
+        }
+        lastNavUrl = url;
+        lastNavTime = now;
+    }
+    // Throttle scroll events
     if (event.type === 'scroll') {
         var ls = events.filter(function(e) { return e.type === 'scroll'; });
         if (ls.length > 0 && ls[ls.length-1]._t && Date.now() - ls[ls.length-1]._t < 2000) {
@@ -467,30 +483,35 @@ function updateDisplay(event) {
 
     switch(event.type) {
         case 'keystroke':
+            isTyping = true;
             currentTyping = event.fullText || '';
             bt.className = 'big-text search';
             bt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
             bl.textContent = 'RECHERCHE EN COURS...';
-            pt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
+            if (pt) pt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
             break;
         case 'search':
+            isTyping = false;
             currentTyping = '';
             bt.className = 'big-text search';
             bt.textContent = event.query || '';
             bl.textContent = '🔍 RECHERCHE';
             ub.innerHTML = '<span class="lock">🔒</span> google.com';
-            pt.textContent = event.query || '';
+            if (pt) pt.textContent = event.query || '';
             break;
         case 'navigate': case 'page_loaded':
+            // Don't overwrite center text while user is typing
+            if (isTyping) break;
             var t = event.pageTitle || event.query || event.domain || '';
             bt.className = 'big-text navigate';
             bt.textContent = t;
             var d = event.domain || extractDomain(event.url);
             bl.textContent = '🌐 ' + d;
             ub.innerHTML = '<span class="lock">🔒</span> ' + esc(d);
-            if (t) pt.textContent = t;
+            if (pt) pt.textContent = t;
             break;
         case 'link_click':
+            isTyping = false;
             bt.className = 'big-text link';
             bt.textContent = event.linkText || '';
             bl.textContent = '👆 LIEN CLIQUÉ';
@@ -510,11 +531,14 @@ function updateDisplay(event) {
             break;
         case 'search_field':
             if (event.action === 'focus') {
+                isTyping = true;
                 bt.className = 'big-text search';
                 bt.innerHTML = '<span class="typing-cursor">|</span>';
                 bl.textContent = '✏️ PRÊT À ÉCRIRE...';
                 currentTyping = '';
-                pt.innerHTML = '<span class="typing-cursor">|</span>';
+                if (pt) pt.innerHTML = '<span class="typing-cursor">|</span>';
+            } else {
+                isTyping = false;
             }
             break;
         case 'suggestion_tap':
