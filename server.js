@@ -104,15 +104,24 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('   SafariMagic Mirror - Les French Twins');
   console.log('═══════════════════════════════════════════════');
   console.log('');
-  console.log(`📱 Page miroir (même réseau WiFi):`);
-  console.log(`   http://${localIP}:${PORT}`);
-  console.log('');
-  console.log(`💻 Page miroir (cet ordi):`);
-  console.log(`   http://localhost:${PORT}`);
-  console.log('');
-  console.log(`🔗 API endpoint pour l'app iOS:`);
-  console.log(`   http://${localIP}:${PORT}/search`);
+  console.log(`🌍 Miroir en ligne — fonctionne partout dans le monde`);
   console.log('');
   console.log('En attente de recherches...');
   console.log('');
+
+  // ===== AUTO-PING: empêche Render de mettre le serveur en veille =====
+  // Ping toutes les 10 minutes pour rester éveillé 24/7
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+  if (RENDER_URL) {
+    setInterval(() => {
+      const https = require('https');
+      https.get(`${RENDER_URL}/ping`, (res) => {
+        console.log(`♻️  Auto-ping OK (${new Date().toLocaleTimeString()})`);
+      }).on('error', (e) => {
+        console.log(`♻️  Auto-ping erreur: ${e.message}`);
+      });
+    }, 10 * 60 * 1000); // 10 minutes
+    console.log('♻️  Auto-ping activé — le serveur ne s\'endormira jamais');
+    console.log('');
+  }
 });
