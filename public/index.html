@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Internet</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: #000;
+      color: #fff;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ===== iOS Status Bar ===== */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px 4px;
+      font-size: 15px;
+      font-weight: 600;
+      background: #1c1c1e;
+      height: 48px;
+    }
+    .status-bar .time { font-size: 16px; font-weight: 700; }
+    .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+
+    /* ===== Safari Address Bar ===== */
+    .address-bar-wrap {
+      background: #1c1c1e;
+      padding: 4px 16px 8px;
+    }
+    .address-bar {
+      background: #2c2c2e;
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 15px;
+      color: #8e8e93;
+      min-height: 36px;
+    }
+    .address-bar .lock { font-size: 12px; }
+    .address-bar .url { color: #fff; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+
+    /* ===== Main Content Area ===== */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 48px - 48px - 50px);
+      background: #1c1c1e;
+      position: relative;
+    }
+
+    /* --- Waiting State --- */
+    .waiting { text-align: center; }
+    .waiting .pulse {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(0,122,255,0.3);
+      animation: pulse 2s ease-in-out infinite;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .waiting .pulse-inner { width: 30px; height: 30px; border-radius: 50%; background: #007AFF; }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.4);opacity:1} }
+    .waiting h2 { font-size: 20px; margin-bottom: 8px; font-weight: 600; }
+    .waiting p { font-size: 14px; color: #8e8e93; margin-bottom: 6px; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .dot.on { background: #30d158; }
+    .dot.off { background: #ff453a; }
+
+    /* --- Activate Button --- */
+    .activate-btn {
+      margin-top: 24px;
+      padding: 14px 36px;
+      border-radius: 14px;
+      border: none;
+      background: #007AFF;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s, opacity .15s;
+    }
+    .activate-btn:active { transform: scale(0.96); opacity: 0.8; }
+    .activate-btn:disabled { background: #333; color: #666; }
+
+    /* --- Active State --- */
+    .active-state { display: none; text-align: center; }
+    .active-state h2 { font-size: 20px; margin-bottom: 8px; color: #30d158; }
+    .active-state p { font-size: 14px; color: #8e8e93; }
+
+    /* --- Log --- */
+    .log-area {
+      position: absolute;
+      bottom: 10px;
+      left: 16px;
+      right: 16px;
+      max-height: 120px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.5);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: none;
+    }
+    .log-area.visible { display: block; }
+    .log-entry { font-size: 12px; color: #8e8e93; padding: 3px 0; border-bottom: 1px solid #222; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-entry .q { color: #007AFF; }
+
+    /* ===== Bottom Toolbar ===== */
+    .toolbar {
+      height: 50px;
+      background: #1c1c1e;
+      border-top: 0.5px solid #38383a;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px;
+    }
+    .toolbar button { background: none; border: none; color: #007AFF; font-size: 20px; padding: 8px 12px; cursor: pointer; opacity: 0.5; }
+    .toolbar .tab-count {
+      border: 1.5px solid #007AFF; border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      color: #007AFF; opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time" id="clock">9:41</span>
+    <span class="icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white">
+        <rect x="0" y="8" width="3" height="4" rx="0.5"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="0.5"/>
+        <rect x="9" y="2" width="3" height="10" rx="0.5"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="0.5" opacity="0.3"/>
+      </svg>
+      <svg width="15" height="12" viewBox="0 0 15 12" fill="white">
+        <path d="M7.5 3.6C9.4 3.6 11.1 4.3 12.4 5.5L13.8 4.1C12.1 2.5 9.9 1.5 7.5 1.5C5.1 1.5 2.9 2.5 1.2 4.1L2.6 5.5C3.9 4.3 5.6 3.6 7.5 3.6Z"/>
+        <path d="M7.5 7.2C8.6 7.2 9.6 7.6 10.4 8.3L11.8 6.9C10.6 5.8 9.1 5.1 7.5 5.1C5.9 5.1 4.4 5.8 3.2 6.9L4.6 8.3C5.4 7.6 6.4 7.2 7.5 7.2Z"/>
+        <circle cx="7.5" cy="10.5" r="1.5"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="white">
+        <rect x="0" y="1" width="21" height="10" rx="2" stroke="white" stroke-width="1" fill="none"/>
+        <rect x="22" y="4" width="2" height="4" rx="0.5"/>
+        <rect x="1.5" y="2.5" width="15" height="7" rx="1" fill="#30d158"/>
+      </svg>
+    </span>
+  </div>
+
+  <!-- Address Bar -->
+  <div class="address-bar-wrap">
+    <div class="address-bar">
+      <span class="lock" id="lockIcon">🔒</span>
+      <span class="url" id="urlText">Rechercher ou entrer un site</span>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content" id="contentArea">
+    <!-- Waiting state -->
+    <div class="waiting" id="waitingState">
+      <div class="pulse"><div class="pulse-inner"></div></div>
+      <h2>SafariMagic Mirror</h2>
+      <p><span class="dot off" id="connDot"></span><span id="connText">Connexion...</span></p>
+      <button class="activate-btn" id="activateBtn" disabled onclick="activateMirror()">
+        Activer le Miroir
+      </button>
+    </div>
+
+    <!-- Active state (shown after activation) -->
+    <div class="active-state" id="activeState">
+      <h2>Miroir Actif</h2>
+      <p>En attente de recherches...</p>
+      <p style="margin-top:12px;font-size:12px;color:#636366;">
+        Chaque recherche s'ouvrira automatiquement
+      </p>
+    </div>
+
+    <!-- Log area -->
+    <div class="log-area" id="logArea"></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button>&#9664;</button>
+    <button>&#9654;</button>
+    <button>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="#007AFF">
+        <path d="M10 1L13 7H20L14.5 11L16.5 18L10 13.5L3.5 18L5.5 11L0 7H7L10 1Z"/>
+      </svg>
+    </button>
+    <button>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#007AFF" stroke-width="1.5">
+        <rect x="2" y="2" width="16" height="16" rx="2"/>
+        <line x1="2" y1="8" x2="18" y2="8"/>
+      </svg>
+    </button>
+    <div class="tab-count">3</div>
+  </div>
+
+  <script>
+    // ===== Config =====
+    const WS_URL = `ws://${window.location.host}`;
+    let ws;
+    let contentWin = null;   // Reference to the popup content window
+    let mirrorActive = false;
+
+    // ===== Clock =====
+    function updateClock() {
+      document.getElementById('clock').textContent =
+        new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ===== Log =====
+    function addLog(text) {
+      const log = document.getElementById('logArea');
+      log.classList.add('visible');
+      const t = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span style="color:#636366">${t}</span> <span class="q">${text}</span>`;
+      log.prepend(entry);
+      // Keep max 20 entries
+      while (log.children.length > 20) log.removeChild(log.lastChild);
+    }
+
+    // ===== WebSocket =====
+    function connect() {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        document.getElementById('connDot').className = 'dot on';
+        document.getElementById('connText').textContent = 'Connecte — pret';
+        document.getElementById('activateBtn').disabled = false;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleMessage(data);
+        } catch(e) { console.error(e); }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('connDot').className = 'dot off';
+        document.getElementById('connText').textContent = 'Deconnecte...';
+        document.getElementById('activateBtn').disabled = true;
+        setTimeout(connect, 3000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    // ===== Handle incoming mirror event =====
+    function handleMessage(data) {
+      const query = data.query || '';
+      const url = data.url || '';
+      const display = query || url || '?';
+
+      addLog(display);
+
+      // Build target URL
+      let targetUrl = url;
+      if (data.type === 'search' && query && !url) {
+        targetUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      }
+      if (!targetUrl) return;
+
+      // Update address bar to look like Safari
+      try {
+        const parsed = new URL(targetUrl);
+        document.getElementById('urlText').textContent = parsed.hostname.replace('www.','');
+      } catch {
+        document.getElementById('urlText').textContent = display;
+      }
+
+      // Open / update the content window
+      if (mirrorActive) {
+        openInContentWindow(targetUrl);
+      }
+    }
+
+    // ===== Activate mirror (needs user gesture for popup) =====
+    function activateMirror() {
+      // Open a blank popup — user gesture required for this
+      contentWin = window.open('about:blank', 'safarimagic_content');
+
+      if (contentWin) {
+        mirrorActive = true;
+        document.getElementById('waitingState').style.display = 'none';
+        document.getElementById('activeState').style.display = 'block';
+
+        // Give the popup a nice waiting page
+        contentWin.document.write(`
+          <!DOCTYPE html>
+          <html><head>
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <style>
+            body{margin:0;background:#1c1c1e;color:#fff;font-family:-apple-system,sans-serif;
+                 display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}
+            h2{font-size:20px;margin-bottom:8px}
+            p{color:#8e8e93;font-size:14px}
+          </style>
+          </head><body>
+            <div><h2>Miroir SafariMagic</h2><p>En attente de la premiere recherche...</p></div>
+          </body></html>
+        `);
+        contentWin.document.close();
+      } else {
+        alert('Popup bloque ! Autorise les popups pour ce site.');
+      }
+    }
+
+    // ===== Open URL in content window =====
+    function openInContentWindow(url) {
+      try {
+        if (!contentWin || contentWin.closed) {
+          // Re-open if it was closed
+          contentWin = window.open(url, 'safarimagic_content');
+        } else {
+          // Navigate existing window
+          contentWin.location.href = url;
+        }
+      } catch (e) {
+        // Fallback: open new
+        contentWin = window.open(url, 'safarimagic_content');
+      }
+    }
+
+    // ===== Periodic check: keep popup reference alive =====
+    setInterval(() => {
+      if (mirrorActive && contentWin && contentWin.closed) {
+        // Popup was closed, show reactivate
+        document.getElementById('activeState').innerHTML = `
+          <h2 style="color:#ff9f0a">Fenetre fermee</h2>
+          <p>La fenetre miroir a ete fermee.</p>
+          <button class="activate-btn" onclick="activateMirror()" style="margin-top:16px">
+            Reactiver
+          </button>
+        `;
+      }
+    }, 2000);
+
+    // ===== Start =====
+    connect();
+  </script>
+</body>
+</html>

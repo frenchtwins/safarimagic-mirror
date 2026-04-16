@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafariMagic Mirror - Control</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container { text-align: center; max-width: 500px; padding: 40px; width: 100%; }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .subtitle { color: #8e8e93; font-size: 16px; margin-bottom: 30px; }
+
+    .status { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; font-size: 16px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff453a; }
+    .dot.connected { background: #30d158; }
+
+    .mode-selector { margin-bottom: 20px; display: flex; gap: 12px; justify-content: center; }
+    .mode-btn {
+      padding: 10px 20px; border-radius: 10px;
+      border: 2px solid #333; background: transparent;
+      color: #fff; font-size: 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .mode-btn.active { border-color: #007AFF; background: rgba(0,122,255,0.15); }
+    .mode-btn:hover { border-color: #007AFF; }
+
+    .activate-section { margin-bottom: 20px; }
+    .activate-btn {
+      padding: 12px 28px; border-radius: 12px; border: none;
+      background: #007AFF; color: #fff; font-size: 16px;
+      font-weight: 600; cursor: pointer;
+    }
+    .activate-btn:disabled { background: #333; color: #666; }
+    .activate-btn:active { opacity: 0.8; }
+
+    .status-badge {
+      display: inline-block; padding: 6px 16px; border-radius: 20px;
+      font-size: 14px; font-weight: 500;
+    }
+    .status-badge.active { background: rgba(48,209,88,0.2); color: #30d158; }
+    .status-badge.inactive { background: rgba(255,69,58,0.2); color: #ff453a; }
+
+    .log {
+      background: #1c1c1e; border-radius: 12px;
+      padding: 20px; text-align: left;
+      max-height: 300px; overflow-y: auto; margin-top: 20px;
+    }
+    .log-entry { padding: 8px 0; border-bottom: 1px solid #2c2c2e; font-size: 14px; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-entry .time { color: #8e8e93; margin-right: 8px; }
+    .log-entry .query { color: #007AFF; }
+    .log-entry .url { color: #636366; font-size: 12px; display: block; margin-top: 2px; }
+
+    .test-section { margin-top: 20px; }
+    .test-input {
+      background: #2c2c2e; border: none; border-radius: 10px;
+      padding: 10px 14px; color: #fff; font-size: 14px; width: 70%;
+      outline: none;
+    }
+    .test-btn {
+      padding: 10px 16px; border-radius: 10px; border: none;
+      background: #30d158; color: #fff; font-size: 14px;
+      cursor: pointer; margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SafariMagic Mirror</h1>
+    <p class="subtitle">Les French Twins — Panneau de controle</p>
+
+    <div class="status">
+      <div class="dot" id="dot"></div>
+      <span id="statusText">Connexion...</span>
+    </div>
+
+    <div class="mode-selector">
+      <button class="mode-btn active" id="modePopup" onclick="setMode('popup')">Miroir (popup)</button>
+      <button class="mode-btn" id="modeLog" onclick="setMode('log')">Log seulement</button>
+    </div>
+
+    <div class="activate-section" id="activateSection">
+      <button class="activate-btn" id="activateBtn" disabled onclick="activateMirror()">
+        Activer le Miroir
+      </button>
+    </div>
+
+    <div id="mirrorStatus"></div>
+
+    <!-- Test section -->
+    <div class="test-section">
+      <input class="test-input" id="testInput" placeholder="Test: simuler une recherche..." onkeydown="if(event.key==='Enter')sendTest()">
+      <button class="test-btn" onclick="sendTest()">Envoyer</button>
+    </div>
+
+    <div class="log" id="log">
+      <div class="log-entry" style="color: #8e8e93;">En attente de recherches...</div>
+    </div>
+  </div>
+
+  <script>
+    let mode = 'popup'; // 'popup' or 'log'
+    let ws;
+    let contentWin = null;
+    let mirrorActive = false;
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('modePopup').className = 'mode-btn' + (m === 'popup' ? ' active' : '');
+      document.getElementById('modeLog').className = 'mode-btn' + (m === 'log' ? ' active' : '');
+      document.getElementById('activateSection').style.display = m === 'popup' ? 'block' : 'none';
+    }
+
+    function addLog(data) {
+      const log = document.getElementById('log');
+      const now = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      const q = data.query || data.url || 'inconnu';
+      const u = data.url || '';
+      entry.innerHTML = `<span class="time">${now}</span> <span class="query">${q}</span>${u ? `<span class="url">${u}</span>` : ''}`;
+      log.prepend(entry);
+    }
+
+    function activateMirror() {
+      contentWin = window.open('about:blank', 'safarimagic_content');
+      if (contentWin) {
+        mirrorActive = true;
+        document.getElementById('mirrorStatus').innerHTML =
+          '<span class="status-badge active">Miroir actif</span>';
+        document.getElementById('activateBtn').textContent = 'Reactiver';
+        contentWin.document.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#1c1c1e;color:#fff;font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}p{color:#8e8e93}</style></head><body><div><h2>Miroir pret</h2><p>En attente...</p></div></body></html>`);
+        contentWin.document.close();
+      } else {
+        alert('Popup bloque ! Autorise les popups pour ce site.');
+      }
+    }
+
+    function openUrl(url) {
+      if (mode !== 'popup' || !mirrorActive) return;
+      try {
+        if (!contentWin || contentWin.closed) {
+          contentWin = window.open(url, 'safarimagic_content');
+        } else {
+          contentWin.location.href = url;
+        }
+      } catch(e) {
+        contentWin = window.open(url, 'safarimagic_content');
+      }
+    }
+
+    function connect() {
+      ws = new WebSocket(`ws://${window.location.host}`);
+
+      ws.onopen = () => {
+        document.getElementById('dot').className = 'dot connected';
+        document.getElementById('statusText').textContent = 'Connecte';
+        document.getElementById('activateBtn').disabled = false;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          addLog(data);
+
+          let targetUrl = data.url;
+          if (data.type === 'search' && data.query && !data.url) {
+            targetUrl = `https://www.google.com/search?q=${encodeURIComponent(data.query)}`;
+          }
+          if (targetUrl) openUrl(targetUrl);
+        } catch(e) { console.error(e); }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('dot').className = 'dot';
+        document.getElementById('statusText').textContent = 'Deconnecte — reconnexion...';
+        document.getElementById('activateBtn').disabled = true;
+        setTimeout(connect, 3000);
+      };
+    }
+
+    // Test: send a fake search to the server
+    function sendTest() {
+      const input = document.getElementById('testInput');
+      const query = input.value.trim();
+      if (!query) return;
+      fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query, url: `https://www.google.com/search?q=${encodeURIComponent(query)}`, type: 'search' })
+      });
+      input.value = '';
+    }
+
+    // Check popup status
+    setInterval(() => {
+      if (mirrorActive) {
+        if (contentWin && !contentWin.closed) {
+          document.getElementById('mirrorStatus').innerHTML = '<span class="status-badge active">Miroir actif</span>';
+        } else {
+          document.getElementById('mirrorStatus').innerHTML = '<span class="status-badge inactive">Fenetre fermee</span>';
+        }
+      }
+    }, 2000);
+
+    connect();
+  </script>
+</body>
+</html>
