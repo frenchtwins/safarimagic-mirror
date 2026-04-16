@@ -1,219 +1,500 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SafariMagic Mirror - Control</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafariMagic Mirror</title>
+<style>
+    :root {
+        --bg: #0a0a0f;
+        --card: #1a1a2e;
+        --accent: #00d4ff;
+        --accent2: #ff6b6b;
+        --text: #e0e0e0;
+        --muted: #666;
+        --green: #00ff88;
+        --orange: #ffaa00;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #000;
-      color: #fff;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        height: 100vh;
+        overflow: hidden;
     }
 
-    .container { text-align: center; max-width: 500px; padding: 40px; width: 100%; }
-    h1 { font-size: 28px; margin-bottom: 8px; }
-    .subtitle { color: #8e8e93; font-size: 16px; margin-bottom: 30px; }
-
-    .status { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; font-size: 16px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff453a; }
-    .dot.connected { background: #30d158; }
-
-    .mode-selector { margin-bottom: 20px; display: flex; gap: 12px; justify-content: center; }
-    .mode-btn {
-      padding: 10px 20px; border-radius: 10px;
-      border: 2px solid #333; background: transparent;
-      color: #fff; font-size: 14px; cursor: pointer; transition: all 0.2s;
+    /* ===== HEADER ===== */
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 24px;
+        background: var(--card);
+        border-bottom: 1px solid #2a2a3e;
     }
-    .mode-btn.active { border-color: #007AFF; background: rgba(0,122,255,0.15); }
-    .mode-btn:hover { border-color: #007AFF; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, var(--accent), #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); animation: pulse 2s infinite; }
+    .status-dot.connected { background: var(--green); }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .status-text { font-size: 13px; color: var(--muted); }
+    .header-right { display: flex; gap: 12px; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #333; background: transparent; color: var(--text); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .btn:hover { background: #2a2a3e; }
+    .btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-    .activate-section { margin-bottom: 20px; }
-    .activate-btn {
-      padding: 12px 28px; border-radius: 12px; border: none;
-      background: #007AFF; color: #fff; font-size: 16px;
-      font-weight: 600; cursor: pointer;
-    }
-    .activate-btn:disabled { background: #333; color: #666; }
-    .activate-btn:active { opacity: 0.8; }
+    /* ===== MAIN LAYOUT ===== */
+    .main { display: flex; height: calc(100vh - 56px); }
 
-    .status-badge {
-      display: inline-block; padding: 6px 16px; border-radius: 20px;
-      font-size: 14px; font-weight: 500;
+    /* ===== LEFT: LIVE PHONE ===== */
+    .phone-panel {
+        width: 340px;
+        min-width: 340px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-right: 1px solid #2a2a3e;
     }
-    .status-badge.active { background: rgba(48,209,88,0.2); color: #30d158; }
-    .status-badge.inactive { background: rgba(255,69,58,0.2); color: #ff453a; }
+    .phone-frame {
+        width: 280px;
+        height: 560px;
+        background: #000;
+        border-radius: 40px;
+        border: 3px solid #333;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .phone-notch {
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 120px; height: 28px;
+        background: #000;
+        border-radius: 0 0 20px 20px;
+        z-index: 10;
+    }
+    .phone-screen {
+        width: 100%; height: 100%;
+        background: #1c1c1e;
+        border-radius: 37px;
+        padding: 32px 12px 12px;
+        position: relative;
+        overflow: hidden;
+    }
+    .phone-url-bar {
+        background: #2c2c2e;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: #8e8e93;
+        text-align: center;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .phone-url-bar .lock { color: var(--green); margin-right: 4px; }
+    .phone-content {
+        flex: 1;
+        font-size: 12px;
+        color: #ccc;
+        overflow: hidden;
+        position: relative;
+        height: calc(100% - 60px);
+    }
+    .typing-display {
+        font-size: 28px;
+        font-weight: 600;
+        color: #fff;
+        text-align: center;
+        padding: 40px 10px;
+        word-break: break-word;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .typing-cursor { animation: blink 0.8s infinite; color: var(--accent); }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 
-    .log {
-      background: #1c1c1e; border-radius: 12px;
-      padding: 20px; text-align: left;
-      max-height: 300px; overflow-y: auto; margin-top: 20px;
+    .touch-dot {
+        position: absolute;
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        background: rgba(0, 212, 255, 0.4);
+        border: 2px solid var(--accent);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.1s;
+        z-index: 100;
     }
-    .log-entry { padding: 8px 0; border-bottom: 1px solid #2c2c2e; font-size: 14px; }
-    .log-entry:last-child { border-bottom: none; }
-    .log-entry .time { color: #8e8e93; margin-right: 8px; }
-    .log-entry .query { color: #007AFF; }
-    .log-entry .url { color: #636366; font-size: 12px; display: block; margin-top: 2px; }
+    .touch-dot.active { background: rgba(0, 212, 255, 0.6); transform: translate(-50%, -50%) scale(1.3); }
 
-    .test-section { margin-top: 20px; }
-    .test-input {
-      background: #2c2c2e; border: none; border-radius: 10px;
-      padding: 10px 14px; color: #fff; font-size: 14px; width: 70%;
-      outline: none;
+    .phone-label { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
+
+    /* ===== CENTER: BIG TEXT MODE ===== */
+    .big-text-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        position: relative;
     }
-    .test-btn {
-      padding: 10px 16px; border-radius: 10px; border: none;
-      background: #30d158; color: #fff; font-size: 14px;
-      cursor: pointer; margin-left: 8px;
+    .big-text {
+        font-size: 72px;
+        font-weight: 800;
+        text-align: center;
+        word-break: break-word;
+        max-width: 90%;
+        line-height: 1.2;
+        transition: all 0.15s;
     }
-  </style>
+    .big-text.search { color: #fff; }
+    .big-text.link { color: var(--accent); font-size: 48px; }
+    .big-text.navigate { color: var(--orange); font-size: 36px; }
+    .big-label {
+        font-size: 16px;
+        color: var(--muted);
+        margin-top: 16px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    .big-image {
+        max-width: 80%;
+        max-height: 60vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    /* ===== RIGHT: TIMELINE ===== */
+    .timeline-panel {
+        width: 380px;
+        min-width: 380px;
+        border-left: 1px solid #2a2a3e;
+        display: flex;
+        flex-direction: column;
+    }
+    .timeline-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #2a2a3e;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .timeline-header h3 { font-size: 15px; font-weight: 600; }
+    .event-count { font-size: 12px; color: var(--muted); }
+
+    .timeline {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
+    .timeline::-webkit-scrollbar { width: 4px; }
+    .timeline::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    .event-item {
+        display: flex;
+        gap: 12px;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 4px;
+        transition: background 0.2s;
+        animation: slideIn 0.3s ease;
+    }
+    .event-item:hover { background: #1a1a2e; }
+    .event-item.highlight { background: rgba(0, 212, 255, 0.1); }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+    .event-time { font-size: 11px; color: var(--muted); min-width: 55px; padding-top: 2px; font-family: 'SF Mono', monospace; }
+    .event-icon { font-size: 16px; min-width: 24px; text-align: center; }
+    .event-body { flex: 1; min-width: 0; }
+    .event-title { font-size: 13px; font-weight: 600; color: #fff; }
+    .event-detail { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .scroll-bar {
+        margin-top: 8px;
+        height: 4px;
+        background: #2a2a3e;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .scroll-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+    /* ===== FULLSCREEN ===== */
+    body.fullscreen-mode .phone-panel,
+    body.fullscreen-mode .timeline-panel { display: none; }
+    body.fullscreen-mode .big-text-panel { width: 100%; }
+    body.fullscreen-mode .big-text { font-size: 120px; }
+
+    @media (max-width: 900px) {
+        .phone-panel { display: none; }
+        .timeline-panel { width: 300px; min-width: 300px; }
+    }
+    @media (max-width: 600px) {
+        .timeline-panel { display: none; }
+        .big-text { font-size: 48px; }
+    }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>SafariMagic Mirror</h1>
-    <p class="subtitle">Les French Twins — Panneau de controle</p>
 
-    <div class="status">
-      <div class="dot" id="dot"></div>
-      <span id="statusText">Connexion...</span>
+<div class="header">
+    <div class="header-left">
+        <div class="logo">SafariMagic</div>
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">Connexion...</span>
+    </div>
+    <div class="header-right">
+        <button class="btn" id="btnFullscreen" onclick="toggleFullscreen()">Plein écran</button>
+        <button class="btn" id="btnClear" onclick="clearLog()">Effacer</button>
+    </div>
+</div>
+
+<div class="main">
+    <div class="phone-panel">
+        <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <div class="phone-url-bar" id="phoneUrlBar">
+                    <span class="lock">🔒</span> Rechercher ou saisir un site
+                </div>
+                <div class="phone-content" id="phoneContent">
+                    <div class="typing-display" id="phoneTyping"></div>
+                </div>
+                <div class="touch-dot" id="touchDot" style="display:none;"></div>
+            </div>
+        </div>
+        <div class="phone-label">
+            <span id="scrollIndicator">📱 iPhone du spectateur</span>
+            <div class="scroll-bar" style="width:200px; margin-top:8px;">
+                <div class="scroll-fill" id="scrollFill" style="width:0%"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="mode-selector">
-      <button class="mode-btn active" id="modePopup" onclick="setMode('popup')">Miroir (popup)</button>
-      <button class="mode-btn" id="modeLog" onclick="setMode('log')">Log seulement</button>
+    <div class="big-text-panel" id="bigTextPanel">
+        <div class="big-text search" id="bigText">En attente...</div>
+        <div class="big-label" id="bigLabel">SAFARIMAGIC MIRROR</div>
     </div>
 
-    <div class="activate-section" id="activateSection">
-      <button class="activate-btn" id="activateBtn" disabled onclick="activateMirror()">
-        Activer le Miroir
-      </button>
+    <div class="timeline-panel">
+        <div class="timeline-header">
+            <h3>📋 Timeline</h3>
+            <span class="event-count" id="eventCount">0 événements</span>
+        </div>
+        <div class="timeline" id="timeline"></div>
     </div>
+</div>
 
-    <div id="mirrorStatus"></div>
+<script>
+var ws = null;
+var events = [];
+var currentTyping = '';
+var isFullscreen = false;
 
-    <!-- Test section -->
-    <div class="test-section">
-      <input class="test-input" id="testInput" placeholder="Test: simuler une recherche..." onkeydown="if(event.key==='Enter')sendTest()">
-      <button class="test-btn" onclick="sendTest()">Envoyer</button>
-    </div>
+function connect() {
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    var url = proto + '//' + location.host + '/ws';
+    ws = new WebSocket(url);
 
-    <div class="log" id="log">
-      <div class="log-entry" style="color: #8e8e93;">En attente de recherches...</div>
-    </div>
-  </div>
-
-  <script>
-    let mode = 'popup'; // 'popup' or 'log'
-    let ws;
-    let contentWin = null;
-    let mirrorActive = false;
-
-    function setMode(m) {
-      mode = m;
-      document.getElementById('modePopup').className = 'mode-btn' + (m === 'popup' ? ' active' : '');
-      document.getElementById('modeLog').className = 'mode-btn' + (m === 'log' ? ' active' : '');
-      document.getElementById('activateSection').style.display = m === 'popup' ? 'block' : 'none';
-    }
-
-    function addLog(data) {
-      const log = document.getElementById('log');
-      const now = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      const q = data.query || data.url || 'inconnu';
-      const u = data.url || '';
-      entry.innerHTML = `<span class="time">${now}</span> <span class="query">${q}</span>${u ? `<span class="url">${u}</span>` : ''}`;
-      log.prepend(entry);
-    }
-
-    function activateMirror() {
-      contentWin = window.open('about:blank', 'safarimagic_content');
-      if (contentWin) {
-        mirrorActive = true;
-        document.getElementById('mirrorStatus').innerHTML =
-          '<span class="status-badge active">Miroir actif</span>';
-        document.getElementById('activateBtn').textContent = 'Reactiver';
-        contentWin.document.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#1c1c1e;color:#fff;font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center}p{color:#8e8e93}</style></head><body><div><h2>Miroir pret</h2><p>En attente...</p></div></body></html>`);
-        contentWin.document.close();
-      } else {
-        alert('Popup bloque ! Autorise les popups pour ce site.');
-      }
-    }
-
-    function openUrl(url) {
-      if (mode !== 'popup' || !mirrorActive) return;
-      try {
-        if (!contentWin || contentWin.closed) {
-          contentWin = window.open(url, 'safarimagic_content');
-        } else {
-          contentWin.location.href = url;
-        }
-      } catch(e) {
-        contentWin = window.open(url, 'safarimagic_content');
-      }
-    }
-
-    function connect() {
-      ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`);
-
-      ws.onopen = () => {
-        document.getElementById('dot').className = 'dot connected';
-        document.getElementById('statusText').textContent = 'Connecte';
-        document.getElementById('activateBtn').disabled = false;
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          addLog(data);
-
-          let targetUrl = data.url;
-          if (data.type === 'search' && data.query && !data.url) {
-            targetUrl = `https://www.google.com/search?q=${encodeURIComponent(data.query)}`;
-          }
-          if (targetUrl) openUrl(targetUrl);
-        } catch(e) { console.error(e); }
-      };
-
-      ws.onclose = () => {
-        document.getElementById('dot').className = 'dot';
-        document.getElementById('statusText').textContent = 'Deconnecte — reconnexion...';
-        document.getElementById('activateBtn').disabled = true;
+    ws.onopen = function() {
+        ws.send(JSON.stringify({ type: 'identify', role: 'mirror' }));
+        setStatus(true);
+    };
+    ws.onmessage = function(e) {
+        try { handleEvent(JSON.parse(e.data)); } catch(err) {}
+    };
+    ws.onclose = function() {
+        setStatus(false);
         setTimeout(connect, 3000);
-      };
-    }
+    };
+    ws.onerror = function() { setStatus(false); };
+}
 
-    // Test: send a fake search to the server
-    function sendTest() {
-      const input = document.getElementById('testInput');
-      const query = input.value.trim();
-      if (!query) return;
-      fetch('/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query, url: `https://www.google.com/search?q=${encodeURIComponent(query)}`, type: 'search' })
-      });
-      input.value = '';
-    }
+function setStatus(ok) {
+    document.getElementById('statusDot').className = 'status-dot' + (ok ? ' connected' : '');
+    document.getElementById('statusText').textContent = ok ? 'Connecté au serveur' : 'Déconnecté';
+}
 
-    // Check popup status
-    setInterval(() => {
-      if (mirrorActive) {
-        if (contentWin && !contentWin.closed) {
-          document.getElementById('mirrorStatus').innerHTML = '<span class="status-badge active">Miroir actif</span>';
-        } else {
-          document.getElementById('mirrorStatus').innerHTML = '<span class="status-badge inactive">Fenetre fermee</span>';
+function setPhoneStatus(ok) {
+    document.getElementById('statusDot').className = 'status-dot' + (ok ? ' connected' : '');
+    document.getElementById('statusText').textContent = ok ? '📱 Téléphone connecté — LIVE' : '📱 En attente du téléphone...';
+}
+
+function handleEvent(msg) {
+    if (msg.type === 'event_log') {
+        if (msg.events) { msg.events.forEach(function(e) { addEvent(e, false); }); scrollTimeline(); }
+        if (msg.phoneConnected) setPhoneStatus(true);
+        return;
+    }
+    if (msg.type === 'phone_connected') { setPhoneStatus(true); addEvent({ type: 'app_state', state: 'connected', timestamp: msg.timestamp }, true); return; }
+    if (msg.type === 'phone_disconnected') { setPhoneStatus(false); addEvent({ type: 'app_state', state: 'disconnected', timestamp: msg.timestamp }, true); return; }
+    if (msg.type === 'clear') { events = []; document.getElementById('timeline').innerHTML = ''; document.getElementById('eventCount').textContent = '0'; return; }
+
+    addEvent(msg, true);
+    updateDisplay(msg);
+}
+
+function addEvent(event, animate) {
+    if (event.type === 'touch' && event.touchType === 'move') return;
+    if (event.type === 'scroll') {
+        var ls = events.filter(function(e) { return e.type === 'scroll'; });
+        if (ls.length > 0 && ls[ls.length-1]._t && Date.now() - ls[ls.length-1]._t < 2000) {
+            updateDisplay(event); return;
         }
-      }
-    }, 2000);
+        event._t = Date.now();
+    }
 
-    connect();
-  </script>
+    events.push(event);
+    var f = formatEvent(event);
+    if (!f) return;
+
+    var tl = document.getElementById('timeline');
+    var el = document.createElement('div');
+    el.className = 'event-item' + (animate ? ' highlight' : '');
+    el.innerHTML = '<div class="event-time">' + formatTime(event.timestamp) + '</div><div class="event-icon">' + f.icon + '</div><div class="event-body"><div class="event-title">' + esc(f.title) + '</div>' + (f.detail ? '<div class="event-detail">' + esc(f.detail) + '</div>' : '') + '</div>';
+    tl.appendChild(el);
+
+    if (animate) { setTimeout(function() { el.classList.remove('highlight'); }, 2000); scrollTimeline(); }
+    document.getElementById('eventCount').textContent = events.length + ' événements';
+    while (tl.children.length > 200) tl.removeChild(tl.firstChild);
+}
+
+function formatTime(ts) {
+    if (!ts) return '--:--';
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) d = new Date(parseInt(ts));
+    return d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+function formatEvent(e) {
+    switch(e.type) {
+        case 'search': return { icon:'🔍', title: e.query||'', detail:'' };
+        case 'keystroke': return { icon:'⌨️', title:'"'+(e.fullText||'')+'"', detail:'touche: '+(e.character||'') };
+        case 'navigate': return { icon:'🌐', title: e.query||e.pageTitle||'', detail: e.url||'' };
+        case 'page_loaded': return { icon:'✅', title: e.pageTitle||'Page chargée', detail: e.domain||'' };
+        case 'link_click': return { icon:'👆', title: e.linkText||'Lien', detail: e.href||'' };
+        case 'image_tap': return { icon:'🖼️', title: e.alt||'Image', detail: (e.src||'').substring(0,60) };
+        case 'scroll': return { icon: e.direction==='down'?'⬇️':'⬆️', title:'Scroll '+(e.direction||''), detail: Math.round((e.depth||0)*100)+'%' };
+        case 'touch': if(e.touchType==='begin') return {icon:'👇',title:'Touch',detail:'('+Math.round(e.x||0)+','+Math.round(e.y||0)+')'}; if(e.touchType==='end') return {icon:'👆',title:'Release',detail:''}; return null;
+        case 'search_field': return { icon: e.action==='focus'?'✏️':'❌', title: e.action==='focus'?'Recherche ouverte':'Recherche fermée', detail:'' };
+        case 'suggestion_tap': return { icon:'💡', title:'Suggestion: "'+(e.suggestion||'')+'"', detail:'' };
+        case 'navigation_action': return { icon:'🔄', title: {back:'◀️ Retour',forward:'▶️ Avant',home:'🏠 Accueil'}[e.action]||e.action, detail:'' };
+        case 'app_state': return { icon:'📱', title: {launched:'🚀 App lancée',active:'📱 Active',inactive:'💤 Inactive',background:'🔙 Background',connected:'📱 Connecté',disconnected:'📱 Déconnecté'}[e.state]||e.state, detail:'' };
+        default: return { icon:'📌', title: e.type||'?', detail: JSON.stringify(e).substring(0,50) };
+    }
+}
+
+function updateDisplay(event) {
+    var bt = document.getElementById('bigText');
+    var bl = document.getElementById('bigLabel');
+    var ub = document.getElementById('phoneUrlBar');
+    var pt = document.getElementById('phoneTyping');
+
+    switch(event.type) {
+        case 'keystroke':
+            currentTyping = event.fullText || '';
+            bt.className = 'big-text search';
+            bt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
+            bl.textContent = 'RECHERCHE EN COURS...';
+            pt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
+            break;
+        case 'search':
+            currentTyping = '';
+            bt.className = 'big-text search';
+            bt.textContent = event.query || '';
+            bl.textContent = '🔍 RECHERCHE';
+            ub.innerHTML = '<span class="lock">🔒</span> google.com';
+            pt.textContent = event.query || '';
+            break;
+        case 'navigate': case 'page_loaded':
+            var t = event.pageTitle || event.query || event.domain || '';
+            bt.className = 'big-text navigate';
+            bt.textContent = t;
+            var d = event.domain || extractDomain(event.url);
+            bl.textContent = '🌐 ' + d;
+            ub.innerHTML = '<span class="lock">🔒</span> ' + esc(d);
+            if (t) pt.textContent = t;
+            break;
+        case 'link_click':
+            bt.className = 'big-text link';
+            bt.textContent = event.linkText || '';
+            bl.textContent = '👆 LIEN CLIQUÉ';
+            break;
+        case 'image_tap':
+            if (event.src) {
+                document.getElementById('bigTextPanel').innerHTML = '<img class="big-image" src="'+esc(event.src)+'" onerror="this.style.display=\'none\'" /><div class="big-label">🖼️ IMAGE</div><div class="big-text link" id="bigText" style="font-size:24px;margin-top:12px">'+esc(event.alt||'')+'</div>';
+            }
+            break;
+        case 'scroll':
+            var depth = Math.round((event.depth||0)*100);
+            document.getElementById('scrollFill').style.width = depth + '%';
+            document.getElementById('scrollIndicator').textContent = (event.direction==='down'?'⬇️ Scroll bas':'⬆️ Scroll haut')+' ('+depth+'%)';
+            break;
+        case 'touch':
+            updateTouchDot(event);
+            break;
+        case 'search_field':
+            if (event.action === 'focus') {
+                bt.className = 'big-text search';
+                bt.innerHTML = '<span class="typing-cursor">|</span>';
+                bl.textContent = '✏️ PRÊT À ÉCRIRE...';
+                currentTyping = '';
+                pt.innerHTML = '<span class="typing-cursor">|</span>';
+            }
+            break;
+        case 'suggestion_tap':
+            bt.className = 'big-text search';
+            bt.textContent = event.suggestion || '';
+            bl.textContent = '💡 SUGGESTION CHOISIE';
+            break;
+    }
+}
+
+function updateTouchDot(event) {
+    var dot = document.getElementById('touchDot');
+    if (!dot) return;
+    if (event.touchType === 'begin' || event.touchType === 'move') {
+        var ps = document.querySelector('.phone-screen');
+        if (!ps) return;
+        var r = ps.getBoundingClientRect();
+        dot.style.display = 'block';
+        dot.style.left = ((event.relX||0)*(r.width-24)+12) + 'px';
+        dot.style.top = ((event.relY||0)*(r.height-44)+32) + 'px';
+        dot.className = 'touch-dot active';
+    } else if (event.touchType === 'end') {
+        dot.className = 'touch-dot';
+        setTimeout(function(){ dot.style.display='none'; }, 300);
+    }
+}
+
+function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+function extractDomain(u) { try { return new URL(u).hostname.replace('www.',''); } catch(e) { return u||''; } }
+function scrollTimeline() { var t=document.getElementById('timeline'); t.scrollTop=t.scrollHeight; }
+
+function toggleFullscreen() {
+    isFullscreen = !isFullscreen;
+    document.body.classList.toggle('fullscreen-mode', isFullscreen);
+    document.getElementById('btnFullscreen').classList.toggle('active', isFullscreen);
+    document.getElementById('btnFullscreen').textContent = isFullscreen ? 'Normal' : 'Plein écran';
+    if (isFullscreen && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    else if (!isFullscreen && document.exitFullscreen) document.exitFullscreen();
+}
+
+function clearLog() {
+    fetch(location.origin + '/clear', { method: 'POST' });
+    events = [];
+    document.getElementById('timeline').innerHTML = '';
+    document.getElementById('eventCount').textContent = '0';
+    document.getElementById('bigTextPanel').innerHTML = '<div class="big-text search" id="bigText">En attente...</div><div class="big-label" id="bigLabel">SAFARIMAGIC MIRROR</div>';
+}
+
+connect();
+</script>
 </body>
 </html>
