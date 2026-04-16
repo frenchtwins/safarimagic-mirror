@@ -216,7 +216,7 @@
 
   <script>
     // ===== Config =====
-    const WS_URL = `ws://${window.location.host}`;
+    const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
     let ws;
     let contentWin = null;   // Reference to the popup content window
     let mirrorActive = false;

@@ -160,7 +160,7 @@
     }
 
     function connect() {
-      ws = new WebSocket(`ws://${window.location.host}`);
+      ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`);
 
       ws.onopen = () => {
         document.getElementById('dot').className = 'dot connected';
