@@ -84,6 +84,19 @@ function handleWSConnection(ws) {
 
             if (msg.type === 'ping') return;
 
+            // Screen frames: relay directly, never store (too large)
+            if (msg.type === 'screen') {
+                if (ws.role === 'phone') {
+                    const data = raw.toString ? raw.toString() : JSON.stringify(msg);
+                    mirrorSockets.forEach((m) => {
+                        if (m.readyState === WebSocket.OPEN) {
+                            m.send(data);
+                        }
+                    });
+                }
+                return;
+            }
+
             // All other messages from phone → store + relay
             if (ws.role === 'phone') {
                 if (!msg.timestamp) msg.timestamp = new Date().toISOString();

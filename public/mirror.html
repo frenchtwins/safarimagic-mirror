@@ -105,6 +105,14 @@
         position: relative;
         height: calc(100% - 60px);
     }
+    .live-frame {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0 0 28px 28px;
+        display: none;
+    }
+    .live-frame.active { display: block; }
     .typing-display {
         font-size: 28px;
         font-weight: 600;
@@ -117,6 +125,7 @@
         align-items: center;
         justify-content: center;
     }
+    .typing-display.hidden { display: none; }
     .typing-cursor { animation: blink 0.8s infinite; color: var(--accent); }
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 
@@ -225,6 +234,33 @@
     }
     .scroll-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
 
+    /* ===== FULLSCREEN LIVE ===== */
+    .fullscreen-live {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: #000;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .fullscreen-live.active { display: flex; }
+    .fullscreen-live img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .fullscreen-live .exit-btn {
+        position: absolute;
+        top: 20px; right: 20px;
+        background: rgba(255,255,255,0.2);
+        border: none; color: #fff;
+        padding: 10px 20px; border-radius: 8px;
+        cursor: pointer; font-size: 14px;
+        z-index: 10000;
+    }
+
     /* ===== FULLSCREEN ===== */
     body.fullscreen-mode .phone-panel,
     body.fullscreen-mode .timeline-panel { display: none; }
@@ -250,9 +286,15 @@
         <span class="status-text" id="statusText">Connexion...</span>
     </div>
     <div class="header-right">
+        <button class="btn" id="btnLive" onclick="toggleLiveFullscreen()">📺 LIVE</button>
         <button class="btn" id="btnFullscreen" onclick="toggleFullscreen()">Plein écran</button>
         <button class="btn" id="btnClear" onclick="clearLog()">Effacer</button>
     </div>
+</div>
+
+<div class="fullscreen-live" id="fullscreenLive">
+    <button class="exit-btn" onclick="toggleLiveFullscreen()">✕ Quitter</button>
+    <img id="liveFrameFullscreen" alt="Live Fullscreen" />
 </div>
 
 <div class="main">
@@ -264,6 +306,7 @@
                     <span class="lock">🔒</span> Rechercher ou saisir un site
                 </div>
                 <div class="phone-content" id="phoneContent">
+                    <img class="live-frame" id="liveFrame" alt="Live" />
                     <div class="typing-display" id="phoneTyping"></div>
                 </div>
                 <div class="touch-dot" id="touchDot" style="display:none;"></div>
@@ -333,8 +376,31 @@ function handleEvent(msg) {
         return;
     }
     if (msg.type === 'phone_connected') { setPhoneStatus(true); addEvent({ type: 'app_state', state: 'connected', timestamp: msg.timestamp }, true); return; }
-    if (msg.type === 'phone_disconnected') { setPhoneStatus(false); addEvent({ type: 'app_state', state: 'disconnected', timestamp: msg.timestamp }, true); return; }
+    if (msg.type === 'phone_disconnected') {
+        setPhoneStatus(false);
+        addEvent({ type: 'app_state', state: 'disconnected', timestamp: msg.timestamp }, true);
+        // Hide live frame, show typing display again
+        var lf = document.getElementById('liveFrame'); if(lf) lf.classList.remove('active');
+        var pt = document.getElementById('phoneTyping'); if(pt) pt.classList.remove('hidden');
+        return;
+    }
     if (msg.type === 'clear') { events = []; document.getElementById('timeline').innerHTML = ''; document.getElementById('eventCount').textContent = '0'; return; }
+
+    // Live screen frames — update phone mockup + fullscreen
+    if (msg.type === 'screen') {
+        var src = 'data:image/jpeg;base64,' + msg.frame;
+        var frame = document.getElementById('liveFrame');
+        if (frame && msg.frame) {
+            frame.src = src;
+            frame.classList.add('active');
+            var pt = document.getElementById('phoneTyping');
+            if (pt) pt.classList.add('hidden');
+        }
+        // Also update fullscreen live view
+        var fsFrame = document.getElementById('liveFrameFullscreen');
+        if (fsFrame && msg.frame) { fsFrame.src = src; }
+        return;
+    }
 
     addEvent(msg, true);
     updateDisplay(msg);
@@ -484,6 +550,15 @@ function toggleFullscreen() {
     document.getElementById('btnFullscreen').textContent = isFullscreen ? 'Normal' : 'Plein écran';
     if (isFullscreen && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
     else if (!isFullscreen && document.exitFullscreen) document.exitFullscreen();
+}
+
+var isLiveFullscreen = false;
+function toggleLiveFullscreen() {
+    isLiveFullscreen = !isLiveFullscreen;
+    document.getElementById('fullscreenLive').classList.toggle('active', isLiveFullscreen);
+    document.getElementById('btnLive').classList.toggle('active', isLiveFullscreen);
+    if (isLiveFullscreen && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    else if (!isLiveFullscreen && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
 }
 
 function clearLog() {
