@@ -20,9 +20,8 @@ const PORT = process.env.PORT || 3333;
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server, path: '/ws' });
-
-// Also accept WebSocket on root path for backward compat
+// Both use noServer so we handle ALL upgrades manually (avoids conflicts)
+const wss = new WebSocket.Server({ noServer: true });
 const wssLegacy = new WebSocket.Server({ noServer: true });
 
 app.use(express.json({ limit: '10mb' }));
