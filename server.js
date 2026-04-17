@@ -160,34 +160,95 @@ app.get('/api/proxy', async (req, res) => {
             body = body.replace(/<head[^>]*>/i, match =>
                 match + `<base href="${baseUrl.origin}/">\n<script>
                 (function() {
+                    var lastScrollSend = 0, lastScrollY = 0;
+                    var typingBuffer = new Map();
+
+                    function post(msg) {
+                        try { window.parent.postMessage(Object.assign({ __einstein: true }, msg), '*'); } catch(e) {}
+                    }
+
+                    // Click tracking (links + images)
                     document.addEventListener('click', function(e) {
                         var a = e.target.closest('a');
                         if (a) {
-                            var href = a.href || '';
+                            var realHref = a.getAttribute('data-real-href') || a.href || '';
                             var text = (a.innerText || a.textContent || '').trim().slice(0, 200);
-                            window.parent.postMessage({ __einstein:true, type:'linkClick', text, href }, '*');
+                            post({ type:'linkClick', text, href: realHref });
                         }
                         var img = e.target.closest('img');
                         if (img && !a) {
-                            window.parent.postMessage({ __einstein:true, type:'imageTap',
+                            post({ type:'imageTap',
                                 alt: img.alt || '', src: img.src || '',
                                 width: img.naturalWidth || img.width || 0,
-                                height: img.naturalHeight || img.height || 0 }, '*');
+                                height: img.naturalHeight || img.height || 0 });
                         }
                     }, true);
-                    // Rewrite all links on load to route through proxy
+
+                    // Input tracking (search boxes inside the proxied page)
+                    document.addEventListener('input', function(e) {
+                        var t = e.target;
+                        if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA')) return;
+                        if (t.type === 'password' || t.type === 'hidden') return;
+                        var val = t.value || '';
+                        var prev = typingBuffer.get(t) || '';
+                        if (val.length > prev.length) {
+                            var added = val.slice(prev.length);
+                            for (var i = 0; i < added.length; i++) {
+                                post({ type:'keystroke', character: added[i], currentText: val.slice(0, prev.length + i + 1), source:'iframe' });
+                            }
+                        } else if (val.length < prev.length) {
+                            var removed = prev.length - val.length;
+                            for (var j = 0; j < removed; j++) {
+                                post({ type:'keystroke', character:'⌫', currentText: val, source:'iframe' });
+                            }
+                        }
+                        typingBuffer.set(t, val);
+                    }, true);
+
+                    // Form submit = search validated
+                    document.addEventListener('submit', function(e) {
+                        try {
+                            var form = e.target;
+                            var q = '';
+                            form.querySelectorAll('input').forEach(function(inp) {
+                                if ((inp.type==='search' || inp.type==='text' || inp.name==='q') && inp.value) { q = inp.value; }
+                            });
+                            if (q) post({ type:'search', query: q, source:'iframe' });
+                        } catch(e) {}
+                    }, true);
+
+                    // Scroll tracking
+                    window.addEventListener('scroll', function() {
+                        var now = Date.now();
+                        if (now - lastScrollSend < 300) return;
+                        lastScrollSend = now;
+                        var scrollY = window.scrollY || window.pageYOffset || 0;
+                        var docHeight = Math.max(document.body.scrollHeight || 0, document.documentElement.scrollHeight || 0);
+                        var viewHeight = window.innerHeight || 0;
+                        var dir = scrollY > lastScrollY ? 'down' : 'up';
+                        lastScrollY = scrollY;
+                        post({ type:'scroll', offsetY: scrollY, contentHeight: docHeight, viewHeight, direction: dir });
+                    }, { passive: true });
+
+                    // Rewrite links to route through proxy
                     function rewrite() {
                         document.querySelectorAll('a[href]').forEach(function(a) {
                             var href = a.href;
-                            if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
-                                a.setAttribute('data-real-href', href);
-                                a.href = '/api/proxy?url=' + encodeURIComponent(href);
-                            }
+                            if (!href || href.startsWith('javascript:') || href.startsWith('#')) return;
+                            if (href.indexOf('/api/proxy?url=') !== -1) return;
+                            a.setAttribute('data-real-href', href);
+                            a.href = '/api/proxy?url=' + encodeURIComponent(href);
                         });
                     }
                     rewrite();
-                    new MutationObserver(rewrite).observe(document.body || document.documentElement, { childList: true, subtree: true });
-                    window.parent.postMessage({ __einstein:true, type:'navigation', url: ${JSON.stringify(target)}, title: document.title || '' }, '*');
+                    try { new MutationObserver(rewrite).observe(document.body || document.documentElement, { childList: true, subtree: true }); } catch(e) {}
+
+                    // Page ready
+                    function ready() {
+                        post({ type:'navigation', url: ${JSON.stringify(target)}, title: document.title || '' });
+                    }
+                    if (document.readyState === 'complete' || document.readyState === 'interactive') ready();
+                    else document.addEventListener('DOMContentLoaded', ready);
                 })();
                 </script>`
             );

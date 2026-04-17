@@ -410,19 +410,37 @@ let tabs = [{ title:'Favoris', host:'', type:'home' }];
 let sessionId = localStorage.getItem('einstein_session') || (Math.random().toString(36).slice(2)+Date.now().toString(36));
 localStorage.setItem('einstein_session', sessionId);
 
-// ===== WebSocket =====
+// ===== WebSocket with auto-reconnect + state resync =====
 function connectWS() {
   const url = (location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws';
   ws = new WebSocket(url);
   ws.onopen = () => {
     ws.send(JSON.stringify({ type:'identify', role:'phone', sessionId }));
     send({ type:'app_state', state:'active' });
+    // Resend current state so mirror catches up
+    resyncState();
   };
-  ws.onclose = () => setTimeout(connectWS, 2000);
+  ws.onclose = () => setTimeout(connectWS, 1500);
+  ws.onerror = () => { try { ws.close(); } catch(e) {} };
 }
 function send(event) {
   const payload = Object.assign({ timestamp: new Date().toISOString() }, event);
   try { if (ws && ws.readyState === 1) ws.send(JSON.stringify(payload)); } catch(e) {}
+}
+/** Re-emit current navigation state after reconnect or foreground return. */
+function resyncState() {
+  if (currentPage.type === 'home') {
+    send({ type:'navigation', url:'https://start', title:'Favoris' });
+  } else if (currentPage.type === 'results') {
+    send({ type:'search', query: currentPage.query, url: currentPage.url });
+    send({ type:'page_loaded', url: currentPage.url, title: currentPage.title });
+  } else if (currentPage.type === 'webview') {
+    send({ type:'navigation', url: currentPage.url, title: currentPage.title });
+    send({ type:'page_loaded', url: currentPage.url, title: currentPage.title });
+  }
+  if (typingBuffer) {
+    send({ type:'keystroke', character:'', currentText: typingBuffer, source:'resync' });
+  }
 }
 
 // ===== Render favorites =====
@@ -449,10 +467,14 @@ function openSearch() {
   const input = document.getElementById('searchInput');
   input.value = '';
   input.focus();
+  typingBuffer = '';
   renderSuggestions('');
+  send({ type:'app_state', state:'active', note:'search_opened' });
 }
 function closeSearch() {
   document.getElementById('searchOverlay').classList.remove('active');
+  typingBuffer = '';
+  send({ type:'app_state', state:'active', note:'search_closed' });
 }
 function renderSuggestions(query) {
   const wrap = document.getElementById('suggestions');
@@ -597,6 +619,7 @@ function goBack() {
     return;
   }
   const prev = history.pop();
+  send({ type:'navigation', url: prev.url || 'home', title: prev.title || 'Favoris', backButton: true });
   if (prev.type === 'home') goHome(false);
   else if (prev.type === 'results') {
     currentPage = prev;
@@ -682,12 +705,21 @@ window.addEventListener('message', (e) => {
   }
 });
 
-// App state tracking
+// ===== App lifecycle — persistent tracking =====
 window.addEventListener('pagehide', () => send({ type:'app_state', state:'background' }));
-window.addEventListener('pageshow', () => send({ type:'app_state', state:'active' }));
-document.addEventListener('visibilitychange', () => {
-  send({ type:'app_state', state: document.hidden ? 'inactive' : 'active' });
+window.addEventListener('pageshow', (e) => {
+  send({ type:'app_state', state:'active', fromCache: !!e.persisted });
+  // If the WebSocket was closed while backgrounded, reconnect; onopen will resync.
+  if (!ws || ws.readyState >= 2) connectWS();
+  else resyncState();
 });
+document.addEventListener('visibilitychange', () => {
+  const state = document.hidden ? 'inactive' : 'active';
+  send({ type:'app_state', state });
+  if (!document.hidden && (!ws || ws.readyState >= 2)) connectWS();
+});
+// Keep alive heartbeat so mirror sees fresh phone status
+setInterval(() => { if (ws && ws.readyState === 1) send({ type:'ping' }); }, 25000);
 
 // Init
 renderFavorites();
