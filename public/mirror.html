@@ -29,7 +29,6 @@
     overflow: hidden;
   }
 
-  /* Aurora ambient */
   body::before, body::after {
     content: '';
     position: fixed; inset: -30%; z-index: 0; pointer-events: none;
@@ -50,25 +49,15 @@
     100% { transform: translate(-10%, 8%) scale(1.2); }
   }
 
-  /* STEALTH MODE: blur everything */
   body.stealth main { filter: blur(20px); opacity: 0.2; pointer-events: none; transition: all 0.3s; }
   body.stealth .stealth-overlay { display: flex; }
-
   .stealth-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 100;
+    display: none; position: fixed; inset: 0; z-index: 100;
     align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    cursor: pointer;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px); cursor: pointer;
   }
-  .stealth-msg {
-    color: var(--text-dim);
-    font-size: 14px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
+  .stealth-msg { color: var(--text-dim); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
 
   .glass {
     background: var(--glass);
@@ -78,7 +67,7 @@
     border-radius: 24px;
   }
 
-  /* ===== TOP BAR ===== */
+  /* TOP BAR */
   .topbar {
     position: relative; z-index: 10;
     display: flex; align-items: center; justify-content: space-between;
@@ -98,228 +87,253 @@
     padding: 3px 8px; border-radius: 6px;
     background: var(--glass); border: 1px solid var(--stroke); color: var(--text-dim);
   }
-  .status {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--text-dim);
-  }
-  .status-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--accent-3); box-shadow: 0 0 8px var(--accent-3);
-  }
-  .status-dot.on {
-    background: var(--green); box-shadow: 0 0 10px var(--green);
-    animation: pulse 2s infinite;
-  }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-3); box-shadow: 0 0 8px var(--accent-3); }
+  .status-dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
   .top-actions { display: flex; gap: 8px; }
   .btn {
-    padding: 9px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--stroke);
-    background: var(--glass);
-    color: var(--text);
-    font-family: inherit; font-size: 12px; font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
+    padding: 9px 14px; border-radius: 12px;
+    border: 1px solid var(--stroke); background: var(--glass);
+    color: var(--text); font-family: inherit; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
   }
   .btn:hover { background: var(--glass-hover); border-color: rgba(255,255,255,0.2); }
   .btn-danger { background: linear-gradient(135deg, #5f1e1e, #8e2a2a); border-color: rgba(255,100,100,0.3); }
-  .btn-stealth { background: linear-gradient(135deg, #1a1a1a, #2a2a2a); }
 
-  /* ===== MAIN LAYOUT ===== */
+  /* MAIN LAYOUT: stage center, phone right */
   main {
     position: relative; z-index: 1;
     display: grid;
-    grid-template-columns: 1fr 260px;
+    grid-template-columns: 1fr 360px;
     gap: 20px;
     padding: 20px;
     height: calc(100vh - 56px);
-  }
-
-  /* HERO — giant action card */
-  .hero {
-    padding: 50px 50px;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    justify-content: center;
-    position: relative;
     overflow: hidden;
   }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at 30% 50%, rgba(10,132,255,0.15) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.6s;
-  }
-  .hero.active::before { opacity: 1; }
 
-  .hero-label {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    position: relative;
-  }
-
-  .hero-action {
-    display: flex;
-    align-items: flex-start;
-    gap: 32px;
-    position: relative;
-  }
-  .hero-emoji {
-    font-size: 72px;
-    line-height: 1;
-    flex-shrink: 0;
-    filter: drop-shadow(0 8px 20px rgba(10,132,255,0.4));
-  }
-  .hero-body { flex: 1; min-width: 0; }
-  .hero-title {
-    font-size: clamp(40px, 5.5vw, 76px);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, #fff 0%, #a8c5ff 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    word-break: break-word;
-  }
-  .hero-title.empty {
-    -webkit-text-fill-color: var(--text-faint);
-    font-weight: 500;
-    font-size: clamp(30px, 4vw, 50px);
-  }
-  .hero-meta {
-    font-size: clamp(16px, 1.8vw, 22px);
-    color: var(--text-dim);
-    font-weight: 500;
-    line-height: 1.4;
-    word-break: break-word;
-  }
-  .hero-meta strong { color: var(--text); font-weight: 700; }
-
-  .hero-bottom {
-    display: flex; gap: 12px; align-items: center;
-    position: relative;
-  }
-  .hero-chip {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 16px;
-    border-radius: 100px;
-    font-size: 14px;
-    font-weight: 600;
-    background: var(--glass);
-    border: 1px solid var(--stroke);
-    color: var(--text);
-  }
-  .hero-chip .val { color: var(--text-dim); }
-
-  /* ===== RIGHT COLUMN ===== */
-  .right {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  /* LEFT: stage with live typing + stacked cards */
+  .stage {
+    display: flex; flex-direction: column; gap: 16px;
+    overflow: hidden;
     min-height: 0;
   }
 
-  /* Phone thumbnail (small, optional) */
-  .phone-thumb {
+  /* TYPING BANNER — always on top, never disappears */
+  .typing {
+    padding: 28px 32px;
     position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 19.5;
-    max-height: 45vh;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .typing::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(10,132,255,0.2) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .typing.active::before { opacity: 1; }
+  .typing-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 8px; position: relative;
+  }
+  .typing-row {
+    display: flex; align-items: baseline; gap: 16px; position: relative;
+    flex-wrap: wrap;
+  }
+  .typing-emoji {
+    font-size: 44px; line-height: 1; flex-shrink: 0;
+    filter: drop-shadow(0 4px 16px rgba(10,132,255,0.4));
+  }
+  .typing-text {
+    font-size: clamp(36px, 5vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, #a8c5ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    word-break: break-word; min-width: 0; flex: 1;
+  }
+  .typing-text.empty {
+    -webkit-text-fill-color: var(--text-faint);
+    font-weight: 500;
+    font-size: clamp(24px, 2.5vw, 36px);
+  }
+  .typing-cursor {
+    display: inline-block;
+    width: 4px;
+    background: var(--accent);
+    vertical-align: -0.1em;
+    height: 0.9em;
+    animation: blink 1s steps(2) infinite;
+    margin-left: 4px;
+    box-shadow: 0 0 10px var(--accent);
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .typing-meta {
+    margin-top: 10px; font-size: 14px; color: var(--text-dim); font-weight: 500; position: relative;
+  }
+  .typing-meta strong { color: var(--text); font-weight: 700; }
+
+  /* SEARCH PINNED — sticky below typing when a search is validated */
+  .search-pin {
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 16px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(48,209,88,0.08), rgba(10,132,255,0.08));
+    border: 1px solid rgba(48,209,88,0.3);
+    display: none;
+  }
+  .search-pin.visible { display: flex; }
+  .search-pin-emoji { font-size: 32px; }
+  .search-pin-body { flex: 1; min-width: 0; }
+  .search-pin-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--green); margin-bottom: 2px;
+  }
+  .search-pin-text {
+    font-size: clamp(20px, 2.5vw, 28px); font-weight: 700;
+    color: var(--text); word-break: break-word;
+  }
+
+  /* CARD FEED — stack of clicks/navigations/images */
+  .feed {
+    flex: 1; min-height: 0;
+    padding: 12px;
+    display: flex; flex-direction: column;
+  }
+  .feed-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-faint); padding: 6px 12px 10px;
+    border-bottom: 1px solid var(--stroke);
+  }
+  .feed-list {
+    flex: 1; overflow-y: auto; padding: 8px 4px;
+  }
+  .feed-list::-webkit-scrollbar { width: 6px; }
+  .feed-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  .card {
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--stroke);
+    display: flex; gap: 16px; align-items: flex-start;
+    animation: slideIn 0.35s cubic-bezier(0.2, 0, 0, 1);
+    transition: all 0.3s;
+  }
+  .card.fresh { background: linear-gradient(135deg, rgba(10,132,255,0.12), rgba(191,90,242,0.08)); border-color: rgba(168,197,255,0.25); }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card-emoji { font-size: 30px; line-height: 1; flex-shrink: 0; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 4px;
+  }
+  .card-title {
+    font-size: 20px; font-weight: 700; line-height: 1.3;
+    color: var(--text); word-break: break-word;
+  }
+  .card-meta {
+    margin-top: 6px; font-size: 13px; color: var(--text-dim); font-weight: 500;
+    word-break: break-word;
+  }
+  .card-meta strong { color: var(--text); font-weight: 700; }
+  .card-time {
+    font-size: 11px; font-family: 'SF Mono', monospace;
+    color: var(--text-faint); flex-shrink: 0; padding-top: 6px;
+  }
+
+  /* Image preview card */
+  .card-image {
+    margin-top: 12px;
+    border-radius: 14px;
+    overflow: hidden;
+    max-height: 280px;
     background: #000;
-    border-radius: 28px;
-    padding: 6px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 16px 40px rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-image img {
+    max-width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* RIGHT: iPhone mockup, bigger */
+  .right {
+    display: flex; flex-direction: column; gap: 14px;
+    min-height: 0;
+  }
+  .phone-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 16px 0;
+  }
+  .phone {
+    position: relative;
+    width: min(320px, 100%);
+    aspect-ratio: 9 / 19.5;
+    max-height: calc(100vh - 200px);
+    background: #000;
+    border-radius: 44px;
+    padding: 8px;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.06),
+      0 30px 80px rgba(0,0,0,0.7),
+      0 0 140px rgba(10, 132, 255, 0.15);
   }
   .phone-bezel {
-    position: relative;
-    width: 100%; height: 100%;
-    border-radius: 22px;
-    background: #0a0a0a;
+    position: relative; width: 100%; height: 100%;
+    border-radius: 38px; background: #0a0a0a;
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.08);
   }
   .live-frame {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    object-fit: cover; object-position: center top;
     display: none;
   }
   .live-frame.active { display: block; }
   .phone-idle {
     position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-faint); font-size: 12px; text-align: center; padding: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; color: var(--text-dim); font-size: 13px; text-align: center; padding: 40px 20px;
   }
   .phone-idle.hidden { display: none; }
+  .phone-idle .ring {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--stroke); border-top-color: var(--accent);
+    animation: spin 1.5s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .island {
-    position: absolute;
-    top: 10px; left: 50%; transform: translateX(-50%);
-    width: 70px; height: 22px;
-    background: #000;
-    border-radius: 14px;
-    z-index: 5; opacity: 0;
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 28px; background: #000;
+    border-radius: 18px; z-index: 5; opacity: 0;
   }
   .live-frame.active ~ .island { opacity: 1; }
 
-  /* Mini ticker */
-  .ticker {
-    flex: 1; min-height: 0;
-    padding: 14px 0;
-    overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-  .ticker-title {
-    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--text-faint);
-    padding: 0 16px 10px;
-    border-bottom: 1px solid var(--stroke);
-  }
-  .ticker-list {
-    flex: 1; overflow-y: auto;
-    padding: 8px 12px;
-  }
-  .ticker-list::-webkit-scrollbar { width: 4px; }
-  .ticker-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .phone-label { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+  .phone-label .name { color: var(--text); font-weight: 600; margin-left: 4px; }
 
-  .tick {
-    display: flex; gap: 10px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    margin-bottom: 4px;
-    font-size: 13px;
-    animation: slideIn 0.3s cubic-bezier(0.2, 0, 0, 1);
+  .scroll-mini {
+    padding: 10px 18px; display: flex; flex-direction: column; align-items: center; gap: 6px;
   }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  .tick:hover { background: var(--glass); }
-  .tick-emoji { font-size: 16px; flex-shrink: 0; line-height: 1.2; }
-  .tick-body { flex: 1; min-width: 0; overflow: hidden; }
-  .tick-text {
-    color: var(--text);
-    font-weight: 500;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .tick-time { font-size: 10px; color: var(--text-faint); margin-top: 1px; }
+  .scroll-label { font-size: 10px; color: var(--text-faint); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+  .scroll-bar { width: 100%; max-width: 260px; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .scroll-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 2px; transition: width 0.3s; box-shadow: 0 0 6px var(--accent); }
 
-  /* ===== RESPONSIVE ===== */
   @media (max-width: 900px) {
-    main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-    .hero { padding: 30px 24px; gap: 20px; }
-    .hero-emoji { font-size: 56px; }
-    .right { flex-direction: row; gap: 12px; }
-    .phone-thumb { width: 140px; max-height: none; flex-shrink: 0; }
-    .ticker { flex: 1; }
+    main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .phone { width: 220px; }
+    .right { flex-direction: row; align-items: center; justify-content: center; gap: 20px; }
+    .scroll-mini { display: none; }
   }
 </style>
 </head>
@@ -339,39 +353,71 @@
     <span id="statusText">Connexion…</span>
   </div>
   <div class="top-actions">
-    <button class="btn btn-stealth" onclick="toggleStealth()" title="Cacher l'écran (Cmd+H)">🫥 Stealth</button>
-    <button class="btn btn-danger" onclick="clearLog()">🗑 Clear</button>
+    <button class="btn" onclick="toggleStealth()" title="Cacher (H)">🫥 Stealth</button>
+    <button class="btn btn-danger" onclick="clearAll()">🗑 Clear</button>
     <a class="btn" href="/admin">🎭 Admin</a>
   </div>
 </header>
 
 <main>
 
-  <!-- HERO (giant current action) -->
-  <div class="hero glass" id="hero">
-    <div class="hero-label" id="heroLabel">En attente du spectateur</div>
-    <div class="hero-action">
-      <div class="hero-emoji" id="heroEmoji">📱</div>
-      <div class="hero-body">
-        <div class="hero-title empty" id="heroTitle">rien pour l'instant</div>
-        <div class="hero-meta" id="heroMeta">Dès qu'il tape, clique ou navigue, ça s'affichera ici en énorme.</div>
+  <!-- LEFT: STAGE -->
+  <div class="stage">
+
+    <!-- Live typing banner (always visible) -->
+    <div class="typing glass" id="typingPanel">
+      <div class="typing-label">Il tape en ce moment</div>
+      <div class="typing-row">
+        <div class="typing-emoji" id="typingEmoji">⌨️</div>
+        <div class="typing-text empty" id="typingText">rien pour l'instant</div>
+      </div>
+      <div class="typing-meta" id="typingMeta">Le curseur clignote dès qu'il commence à taper.</div>
+    </div>
+
+    <!-- Pinned last validated search -->
+    <div class="search-pin glass" id="searchPin">
+      <div class="search-pin-emoji">🔍</div>
+      <div class="search-pin-body">
+        <div class="search-pin-label">Dernière recherche validée</div>
+        <div class="search-pin-text" id="searchPinText"></div>
       </div>
     </div>
-    <div class="hero-bottom" id="heroBottom"></div>
+
+    <!-- Feed of actions (clicks, navigations, images) -->
+    <div class="feed glass">
+      <div class="feed-label">Actions — tout reste visible</div>
+      <div class="feed-list" id="feedList">
+        <div class="card" style="animation: none;">
+          <div class="card-emoji">✨</div>
+          <div class="card-body">
+            <div class="card-label">En attente</div>
+            <div class="card-title">Le spectateur n'a encore rien fait</div>
+            <div class="card-meta">Chaque clic, recherche ou image viendra s'empiler ici.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Right column: phone thumb + mini ticker -->
+  <!-- RIGHT: iPhone live + scroll -->
   <div class="right">
-    <div class="phone-thumb">
-      <div class="phone-bezel">
-        <img class="live-frame" id="liveFrame" alt="Live" />
-        <div class="phone-idle" id="phoneIdle">…</div>
-        <div class="island"></div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-bezel">
+          <img class="live-frame" id="liveFrame" alt="Live" />
+          <div class="phone-idle" id="phoneIdle">
+            <div class="ring"></div>
+            <div>En attente…</div>
+          </div>
+          <div class="island"></div>
+        </div>
       </div>
+      <div class="phone-label">📱<span class="name">iPhone live</span></div>
     </div>
-    <div class="ticker glass">
-      <div class="ticker-title">Historique</div>
-      <div class="ticker-list" id="tickerList"></div>
+    <div class="glass scroll-mini">
+      <div class="scroll-label" id="scrollLabel">—</div>
+      <div class="scroll-bar"><div class="scroll-fill" id="scrollFill" style="width:0%"></div></div>
     </div>
   </div>
 
@@ -380,13 +426,12 @@
 <script>
 let ws = null;
 let currentTyping = '';
-let events = [];
-let currentPage = null;
+let searchedQuery = null;
+let cards = []; // stack of event cards (no limit — scroll)
 
 function connect() {
   const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws';
   ws = new WebSocket(wsUrl);
-
   ws.onopen = () => {
     setStatus(false, 'Connecté au serveur');
     ws.send(JSON.stringify({ type: 'identify', role: 'mirror' }));
@@ -395,14 +440,14 @@ function connect() {
   ws.onclose = () => { setStatus(false, 'Déconnecté — reconnexion…'); setTimeout(connect, 2000); };
 }
 
-function setStatus(phoneOn, text) {
-  document.getElementById('statusDot').classList.toggle('on', phoneOn);
+function setStatus(on, text) {
+  document.getElementById('statusDot').classList.toggle('on', on);
   document.getElementById('statusText').textContent = text;
 }
 
 function handle(msg) {
   if (msg.type === 'event_log') {
-    (msg.events || []).slice(-20).forEach(e => { if (!isNoise(e)) addTick(e, false); });
+    (msg.events || []).forEach(e => consume(e, false));
     setStatus(msg.phoneConnected, msg.phoneConnected ? 'Téléphone connecté · live' : 'Téléphone hors ligne');
     return;
   }
@@ -410,6 +455,7 @@ function handle(msg) {
   if (msg.type === 'phone_disconnected') {
     setStatus(false, 'Téléphone hors ligne');
     document.getElementById('liveFrame').classList.remove('active');
+    document.getElementById('phoneIdle').classList.remove('hidden');
     return;
   }
   if (msg.type === 'screen' && msg.frame) {
@@ -419,161 +465,178 @@ function handle(msg) {
     document.getElementById('phoneIdle').classList.add('hidden');
     return;
   }
-  if (msg.type === 'clear') { events = []; render(); updateHero(null); return; }
+  if (msg.type === 'scroll') { updateScroll(msg); return; }
+  if (msg.type === 'touch') return; // skip
+  if (msg.type === 'clear') { resetAll(); return; }
 
-  if (msg.type === 'navigation' || msg.type === 'page_loaded') {
-    currentPage = { url: msg.url, title: msg.title || '' };
-  }
+  consume(msg, true);
+}
+
+function consume(msg, fresh) {
+  // Keystroke → update live typing area (never a card)
   if (msg.type === 'keystroke') {
     if (msg.character === '⌫') currentTyping = currentTyping.slice(0, -1);
     else if (msg.character) currentTyping += msg.character;
-  }
-  if (msg.type === 'search') currentTyping = msg.query || '';
-
-  updateHero(msg);
-  if (!isNoise(msg)) addTick(msg, true);
-}
-
-function isNoise(msg) {
-  // Ignore in ticker: touch events, scroll, keystroke (too many), app_state duplicates
-  if (msg.type === 'touch' || msg.type === 'scroll' || msg.type === 'keystroke') return true;
-  if (msg.type === 'app_state' && events[0] && events[0].type === 'app_state' && events[0].state === msg.state) return true;
-  if (msg.type === 'screen') return true;
-  return false;
-}
-
-function updateHero(msg) {
-  const title = document.getElementById('heroTitle');
-  const meta = document.getElementById('heroMeta');
-  const emoji = document.getElementById('heroEmoji');
-  const label = document.getElementById('heroLabel');
-  const hero = document.getElementById('hero');
-  const bottom = document.getElementById('heroBottom');
-
-  if (!msg) {
-    label.textContent = 'En attente du spectateur';
-    emoji.textContent = '📱';
-    title.className = 'hero-title empty';
-    title.textContent = 'rien pour l\'instant';
-    meta.innerHTML = 'Dès qu\'il tape, clique ou navigue, ça s\'affichera ici en énorme.';
-    bottom.innerHTML = '';
-    hero.classList.remove('active');
+    updateTyping();
     return;
   }
 
-  hero.classList.add('active');
-  const v = heroFor(msg);
-  label.textContent = v.label;
-  emoji.textContent = v.emoji;
-  title.className = 'hero-title';
-  title.textContent = v.title;
-  meta.innerHTML = v.meta || '';
-  bottom.innerHTML = v.chips ? v.chips.map(c => `<div class="hero-chip">${c}</div>`).join('') : '';
-}
+  // Search → pin + card
+  if (msg.type === 'search') {
+    searchedQuery = msg.query || '';
+    currentTyping = '';
+    updateTyping();
+    updateSearchPin();
+    addCard({
+      emoji: '🔍',
+      label: 'Recherche validée',
+      title: '« ' + searchedQuery + ' »',
+      meta: msg.url ? 'Résultats sur <strong>' + hostFromUrl(msg.url) + '</strong>' : '',
+      time: msg.timestamp
+    }, fresh);
+    return;
+  }
 
-function heroFor(msg) {
-  switch (msg.type) {
-    case 'keystroke':
-      return {
-        label: 'Il tape en ce moment',
-        emoji: '⌨️',
-        title: currentTyping ? '« ' + currentTyping + ' »' : '(efface)',
-        meta: 'Dernière touche : <strong>' + escape(msg.character || '') + '</strong>',
-        chips: [`${currentTyping.length} caractères`]
-      };
-    case 'search':
-      return {
-        label: 'Il a validé sa recherche',
-        emoji: '🔍',
-        title: '« ' + (msg.query || '') + ' »',
-        meta: 'Le spectateur a appuyé sur <strong>Entrée</strong>. Demande-lui ce qu\'il cherchait.',
-        chips: msg.url ? [`🌐 ${hostFromUrl(msg.url)}`] : []
-      };
-    case 'link_click':
-      return {
-        label: 'Il a cliqué sur un lien',
-        emoji: '👆',
-        title: msg.linkText ? '« ' + msg.linkText + ' »' : '(lien sans texte)',
-        meta: msg.href ? 'Va vers <strong>' + hostFromUrl(msg.href) + '</strong>' : '',
-        chips: []
-      };
-    case 'image_tap':
-      return {
-        label: 'Il a cliqué sur une image',
-        emoji: '🖼️',
-        title: msg.alt ? '« ' + msg.alt + ' »' : '(image sans légende)',
-        meta: (msg.width && msg.height) ? 'Dimensions <strong>' + msg.width + '×' + msg.height + '</strong>' : '',
-        chips: msg.src ? [`🌐 ${hostFromUrl(msg.src)}`] : []
-      };
-    case 'navigation':
-    case 'page_loaded': {
-      const host = hostFromUrl(msg.url || '');
-      return {
-        label: 'Il est maintenant sur cette page',
-        emoji: '📄',
-        title: msg.title || host || '(sans titre)',
-        meta: host ? '<strong>' + host + '</strong>' : '',
-        chips: []
-      };
-    }
-    case 'app_state': {
-      const map = {
-        active: { l: 'Il vient d\'ouvrir l\'app', e: '▶️', t: 'App au premier plan' },
-        inactive: { l: 'App en pause', e: '⏸️', t: 'L\'app n\'est plus active' },
-        background: { l: 'App en arrière-plan', e: '🌙', t: 'Il est sorti de l\'app' },
-        launched: { l: 'Lancement', e: '🚀', t: 'L\'app démarre' }
-      };
-      const m = map[msg.state] || { l: 'État', e: '📱', t: msg.state || '' };
-      return { label: m.l, emoji: m.e, title: m.t, meta: '', chips: [] };
-    }
-    default:
-      return { label: msg.type || 'Event', emoji: '•', title: '', meta: '', chips: [] };
+  // Link click → card
+  if (msg.type === 'link_click') {
+    addCard({
+      emoji: '👆',
+      label: 'Il a cliqué sur un lien',
+      title: msg.linkText ? '« ' + msg.linkText + ' »' : '(lien sans texte)',
+      meta: msg.href ? 'Va vers <strong>' + hostFromUrl(msg.href) + '</strong>' : '',
+      time: msg.timestamp
+    }, fresh);
+    return;
+  }
+
+  // Image tap → card with preview image
+  if (msg.type === 'image_tap') {
+    addCard({
+      emoji: '🖼️',
+      label: 'Il a cliqué sur une image',
+      title: msg.alt ? '« ' + msg.alt + ' »' : '(image sans légende)',
+      meta: (msg.width && msg.height) ? 'Taille <strong>' + msg.width + '×' + msg.height + '</strong>' : '',
+      imageSrc: msg.src || null,
+      time: msg.timestamp
+    }, fresh);
+    return;
+  }
+
+  // Navigation / page load → card
+  if (msg.type === 'navigation' || msg.type === 'page_loaded') {
+    const host = hostFromUrl(msg.url || '');
+    addCard({
+      emoji: '📄',
+      label: 'Il est maintenant sur',
+      title: msg.title || host || '(sans titre)',
+      meta: host ? '<strong>' + host + '</strong>' : '',
+      time: msg.timestamp
+    }, fresh);
+    return;
+  }
+
+  // App state → card only for launch
+  if (msg.type === 'app_state' && msg.state === 'launched') {
+    addCard({
+      emoji: '🚀',
+      label: 'Lancement',
+      title: 'L\'app vient de démarrer',
+      meta: '',
+      time: msg.timestamp
+    }, fresh);
+    return;
   }
 }
 
-function addTick(e, prepend) {
-  if (prepend) events.unshift(e);
-  else events.push(e);
-  if (events.length > 30) events = events.slice(0, 30);
-  render();
+function updateTyping() {
+  const el = document.getElementById('typingText');
+  const panel = document.getElementById('typingPanel');
+  const meta = document.getElementById('typingMeta');
+  const emoji = document.getElementById('typingEmoji');
+
+  if (!currentTyping) {
+    el.className = 'typing-text empty';
+    el.textContent = 'rien pour l\'instant';
+    panel.classList.remove('active');
+    emoji.textContent = '⌨️';
+    meta.innerHTML = 'Le curseur clignote dès qu\'il commence à taper.';
+    return;
+  }
+  el.className = 'typing-text';
+  el.innerHTML = escape(currentTyping) + '<span class="typing-cursor"></span>';
+  panel.classList.add('active');
+  emoji.textContent = '✍️';
+  meta.innerHTML = '<strong>' + currentTyping.length + '</strong> caractères · il est en train de composer sa recherche';
 }
 
-function render() {
-  const list = document.getElementById('tickerList');
-  list.innerHTML = events.map(e => renderTick(e)).join('');
+function updateSearchPin() {
+  const pin = document.getElementById('searchPin');
+  if (searchedQuery) {
+    pin.classList.add('visible');
+    document.getElementById('searchPinText').textContent = '« ' + searchedQuery + ' »';
+  } else {
+    pin.classList.remove('visible');
+  }
 }
 
-function renderTick(e) {
-  const time = e.timestamp ? new Date(e.timestamp).toLocaleTimeString('fr-FR', { hour12: false }).slice(0, 5) : '';
-  const v = heroFor(e);
+function addCard(card, fresh) {
+  cards.unshift(card);
+  renderFeed(fresh);
+}
+
+function renderFeed(fresh) {
+  const list = document.getElementById('feedList');
+  list.innerHTML = cards.map((c, i) => renderCard(c, fresh && i === 0)).join('');
+}
+
+function renderCard(c, isFresh) {
+  const time = c.time ? new Date(c.time).toLocaleTimeString('fr-FR', { hour12: false }).slice(0, 8) : '';
+  const imgHtml = c.imageSrc ? `<div class="card-image"><img src="${escape(c.imageSrc)}" onerror="this.parentElement.style.display='none'" /></div>` : '';
   return `
-    <div class="tick">
-      <div class="tick-emoji">${v.emoji}</div>
-      <div class="tick-body">
-        <div class="tick-text">${escape(v.label)} — ${escape(v.title)}</div>
-        <div class="tick-time">${escape(time)}</div>
+    <div class="card ${isFresh ? 'fresh' : ''}">
+      <div class="card-emoji">${c.emoji}</div>
+      <div class="card-body">
+        <div class="card-label">${escape(c.label)}</div>
+        <div class="card-title">${escape(c.title)}</div>
+        ${c.meta ? `<div class="card-meta">${c.meta}</div>` : ''}
+        ${imgHtml}
       </div>
+      <div class="card-time">${escape(time)}</div>
     </div>
   `;
 }
 
+function updateScroll(msg) {
+  const pct = msg.contentHeight ? Math.round((msg.offsetY||0) / Math.max(1, msg.contentHeight - (msg.viewHeight||0)) * 100) : 0;
+  const clamped = Math.max(0, Math.min(100, pct));
+  document.getElementById('scrollFill').style.width = clamped + '%';
+  document.getElementById('scrollLabel').textContent = (msg.direction === 'down' ? '⬇️' : '⬆️') + ' ' + clamped + '% de la page';
+}
+
+function resetAll() {
+  cards = [];
+  currentTyping = '';
+  searchedQuery = null;
+  updateTyping();
+  updateSearchPin();
+  renderFeed(false);
+  document.getElementById('feedList').innerHTML = '<div class="card" style="animation:none;"><div class="card-emoji">✨</div><div class="card-body"><div class="card-label">En attente</div><div class="card-title">Le spectateur n\'a encore rien fait</div><div class="card-meta">Chaque clic, recherche ou image viendra s\'empiler ici.</div></div></div>';
+}
+
+async function clearAll() {
+  await fetch('/clear', { method: 'POST' });
+  resetAll();
+}
+
+function toggleStealth() { document.body.classList.toggle('stealth'); }
+
 function hostFromUrl(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url || ''; } }
 function escape(s) { if (s == null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-async function clearLog() {
-  await fetch('/clear', { method: 'POST' });
-  events = []; render();
-  currentTyping = '';
-  updateHero(null);
-}
-
-function toggleStealth() {
-  document.body.classList.toggle('stealth');
-}
-
-// Keyboard shortcut: H to hide/reveal
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'h' || e.key === 'H') { e.preventDefault(); toggleStealth(); }
+  if ((e.key === 'h' || e.key === 'H') && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
+    e.preventDefault(); toggleStealth();
+  }
   if (e.key === 'Escape' && document.body.classList.contains('stealth')) toggleStealth();
 });
 
