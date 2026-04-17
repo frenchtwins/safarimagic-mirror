@@ -264,8 +264,20 @@ app.get('/api/proxy', async (req, res) => {
     }
 });
 
+function decodeEntities(s) {
+    return s
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+        .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&apos;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+}
 function stripHtml(s) {
-    return s.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return decodeEntities(s.replace(/<[^>]*>/g, ''));
 }
 
 // Static files (AFTER config routes so /config.json hits the dynamic handler)

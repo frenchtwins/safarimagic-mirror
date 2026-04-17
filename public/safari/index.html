@@ -6,6 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Safari">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="/safari/manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="/safari/icons/apple-touch-icon-180.png">
   <link rel="icon" type="image/png" href="/safari/icons/icon-192.png">
@@ -19,9 +21,10 @@
     --text-2: #8e8e93;
     --text-3: #c7c7cc;
     --blue: #007aff;
-    --sep: #e5e5ea;
-    --toolbar-bg: rgba(249,249,249,0.9);
-    --url-bg: #e5e5ea;
+    --sep: rgba(60,60,67,0.1);
+    --toolbar-bg: rgba(249,249,249,0.94);
+    --url-bg: rgba(118,118,128,0.12);
+    --shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -31,9 +34,10 @@
       --text-2: #98989f;
       --text-3: #545458;
       --blue: #0a84ff;
-      --sep: #38383a;
+      --sep: rgba(255,255,255,0.15);
       --toolbar-bg: rgba(18,18,18,0.92);
-      --url-bg: rgba(255,255,255,0.08);
+      --url-bg: rgba(118,118,128,0.24);
+      --shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
   }
   html, body {
@@ -48,7 +52,6 @@
   }
   body { display: flex; flex-direction: column; }
 
-  /* ===== Content area ===== */
   .content {
     flex: 1;
     overflow-y: auto;
@@ -57,168 +60,180 @@
     position: relative;
   }
 
-  /* ===== HOME PAGE ===== */
-  .home { padding: 0 16px 120px; }
+  /* ===== HOME ===== */
+  .home { padding: 20px 16px 140px; }
   .home-header {
-    padding: 28px 0 12px;
+    padding: 10px 0 16px;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .home-title {
-    font-size: 17px; font-weight: 700;
-  }
+  .home-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
   .edit-btn {
-    color: var(--blue); font-size: 17px; background: none; border: none; font-family: inherit; cursor: pointer;
+    color: var(--blue); font-size: 17px; background: none; border: none; font-family: inherit; cursor: pointer; padding: 4px 8px; margin-right: -8px;
   }
 
-  /* Favoris grid */
   .favorites {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px 10px;
-    padding: 8px 0 16px;
+    padding: 8px 0 12px;
   }
-  .fav {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    cursor: pointer;
-    user-select: none;
-  }
+  .fav { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
   .fav-icon {
-    width: 58px; height: 58px;
+    width: 62px; height: 62px;
     border-radius: 14px;
+    overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    font-size: 30px; font-weight: 700; color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  .fav-icon img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 14px;
+    display: block;
   }
   .fav-label {
-    font-size: 11px; font-weight: 400; color: var(--text);
-    text-align: center; line-height: 1.2;
-    max-width: 72px;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.18;
+    max-width: 76px;
+    word-break: break-word;
   }
 
-  /* Privacy card */
   .privacy-card {
     background: var(--card);
-    border-radius: 12px;
-    padding: 14px 16px;
+    border-radius: 10px;
+    padding: 12px 14px;
     display: flex; gap: 12px; align-items: center;
-    margin-top: 20px;
+    margin-top: 24px;
+    box-shadow: var(--shadow);
   }
   .privacy-shield {
-    width: 28px; height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-2); font-size: 24px;
+    width: 24px; height: 24px;
+    color: var(--text-2); display: flex; align-items: center; justify-content: center;
   }
+  .privacy-shield svg { width: 22px; height: 22px; }
   .privacy-body { flex: 1; }
   .privacy-title { font-size: 13px; font-weight: 600; color: var(--text); }
-  .privacy-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+  .privacy-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; line-height: 1.3; }
 
-  /* ===== RESULTS PAGE (hidden by default) ===== */
-  .results {
-    display: none;
-    padding: 0 16px 120px;
-  }
+  /* ===== RESULTS ===== */
+  .results { display: none; padding: 0 16px 140px; }
   .results.active { display: block; }
-  .results-header {
-    padding: 12px 0 8px;
-    border-bottom: 0.5px solid var(--sep);
-  }
-  .results-count {
-    font-size: 13px; color: var(--text-2);
-    padding: 8px 0;
-  }
   .result-tabs {
-    display: flex; gap: 20px; padding: 10px 0;
+    display: flex; gap: 24px; padding: 12px 0 10px;
     border-bottom: 0.5px solid var(--sep);
     overflow-x: auto; white-space: nowrap;
+    scrollbar-width: none;
   }
   .result-tabs::-webkit-scrollbar { display: none; }
   .result-tab {
-    font-size: 14px; color: var(--text-2); padding: 4px 0;
-    font-weight: 500; cursor: pointer;
+    font-size: 15px;
+    color: var(--text-2);
+    padding: 4px 0 6px;
+    font-weight: 400;
+    cursor: pointer;
+    position: relative;
   }
-  .result-tab.active { color: var(--text); border-bottom: 2px solid var(--text); padding-bottom: 6px; }
+  .result-tab.active {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .result-tab.active::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -10px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 1px;
+  }
+  .results-count { font-size: 13px; color: var(--text-2); padding: 14px 0 0; }
 
-  .result-item {
-    padding: 14px 0;
-    border-bottom: 0.5px solid var(--sep);
-  }
+  .result-item { padding: 16px 0; border-bottom: 0.5px solid var(--sep); }
   .result-site {
     display: flex; align-items: center; gap: 8px;
     font-size: 13px; color: var(--text);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   .result-favicon {
     width: 18px; height: 18px; border-radius: 4px;
     background: var(--url-bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 700;
     flex-shrink: 0;
+    overflow: hidden;
   }
+  .result-favicon img { width: 100%; height: 100%; object-fit: cover; }
   .result-title {
-    font-size: 16px; color: var(--blue);
+    font-size: 17px; color: var(--blue);
     font-weight: 400;
-    margin: 4px 0;
+    margin: 4px 0 2px;
     line-height: 1.3;
+    letter-spacing: -0.01em;
   }
   .result-snippet {
-    font-size: 13px; color: var(--text-2);
+    font-size: 14px; color: var(--text-2);
     line-height: 1.35;
   }
 
-  /* ===== WEB VIEW (external page rendered in iframe) ===== */
-  .webview {
-    display: none;
-    width: 100%; height: 100%;
-    position: absolute; inset: 0;
-    background: var(--card);
-  }
+  /* ===== WEBVIEW ===== */
+  .webview { display: none; width: 100%; height: 100%; position: absolute; inset: 0; background: var(--card); }
   .webview.active { display: block; }
   .webview iframe { width: 100%; height: 100%; border: none; background: var(--card); }
 
-  /* ===== BOTTOM URL BAR + TOOLBAR (Safari iOS 17+) ===== */
+  /* ===== BOTTOM BAR ===== */
   .bottom {
     padding-bottom: env(safe-area-inset-bottom, 8px);
     background: var(--toolbar-bg);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-top: 0.5px solid rgba(0,0,0,0.1);
+    border-top: 0.5px solid var(--sep);
+    position: relative; z-index: 10;
   }
-  @media (prefers-color-scheme: dark) {
-    .bottom { border-top-color: rgba(255,255,255,0.12); }
-  }
-  .url-bar-wrap {
-    padding: 8px 12px 6px;
-  }
+  .url-bar-wrap { padding: 8px 16px 4px; }
   .url-bar {
     display: flex; align-items: center; gap: 8px;
     background: var(--url-bg);
     border-radius: 12px;
-    padding: 9px 12px;
+    padding: 0 12px;
     cursor: text;
-    min-height: 40px;
+    height: 40px;
   }
-  .url-bar-icon { color: var(--text-2); font-size: 13px; }
+  .url-bar-icon { color: var(--text-2); display: flex; }
+  .url-bar-icon svg { width: 14px; height: 14px; }
   .url-bar-text {
     flex: 1;
     font-size: 16px;
     color: var(--text-2);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-align: center;
+    font-weight: 400;
   }
   .url-bar-text.placeholder { color: var(--text-2); }
-  .url-bar-reload { color: var(--blue); font-size: 16px; padding-left: 6px; }
+  .url-bar-text.active { color: var(--text); text-align: left; }
+  .url-bar-reload {
+    color: var(--blue); padding: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .url-bar-reload svg { width: 16px; height: 16px; }
 
   .toolbar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 2px 24px 4px;
-    height: 44px;
+    padding: 0 18px 2px;
+    height: 48px;
   }
   .tool {
     color: var(--blue); cursor: pointer;
-    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
     background: none; border: none; font-family: inherit;
+    transition: opacity 0.15s;
   }
+  .tool:active { opacity: 0.5; }
   .tool.disabled { color: var(--text-3); pointer-events: none; }
+  .tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .tool.chev svg { stroke-width: 2.5; }
 
   /* ===== SEARCH OVERLAY ===== */
   .search-overlay {
@@ -231,40 +246,49 @@
   .search-overlay.active { display: flex; }
   .search-top {
     display: flex; gap: 10px; align-items: center;
-    padding: env(safe-area-inset-top, 12px) 12px 10px;
     padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+    padding-left: 12px; padding-right: 12px; padding-bottom: 10px;
   }
   .search-input {
     flex: 1;
     background: var(--url-bg);
     border: none; border-radius: 12px;
-    padding: 12px 16px;
+    padding: 10px 14px;
     font-size: 17px;
     font-family: inherit;
     color: var(--text);
     outline: none;
+    height: 40px;
   }
   .search-cancel {
     color: var(--blue); font-size: 17px; background: none; border: none;
     font-family: inherit; padding: 8px 4px; cursor: pointer;
   }
-  .search-suggestions {
-    flex: 1; overflow-y: auto;
-    padding: 8px 0;
-  }
+  .search-suggestions { flex: 1; overflow-y: auto; padding: 4px 0; }
   .sug {
     display: flex; align-items: center; gap: 14px;
-    padding: 14px 16px;
-    font-size: 16px; color: var(--text);
+    padding: 13px 16px;
+    font-size: 15px; color: var(--text);
     border-bottom: 0.5px solid var(--sep);
     cursor: pointer;
   }
-  .sug-icon { font-size: 14px; color: var(--text-2); }
+  .sug-icon {
+    width: 18px; height: 18px; color: var(--text-2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sug-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .sug-text { flex: 1; }
+  .sug .arrow {
+    width: 20px; height: 20px;
+    color: var(--text-3);
+    transform: rotate(-45deg);
+  }
+  .sug .arrow svg { width: 100%; height: 100%; }
 
-  /* Tabs overlay */
+  /* ===== TABS OVERLAY ===== */
   .tabs-overlay {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.95);
+    background: #000;
     z-index: 99;
     display: none;
     flex-direction: column;
@@ -272,33 +296,52 @@
     color: #fff;
   }
   .tabs-overlay.active { display: flex; }
-  .tabs-top { display: flex; justify-content: space-between; padding: 16px 8px; }
+  .tabs-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 4px 0; }
+  .tabs-count { font-size: 14px; color: #8e8e93; }
+  .tabs-done { color: var(--blue); font-size: 17px; background: none; border: none; font-family: inherit; font-weight: 600; cursor: pointer; padding: 8px; }
   .tabs-grid {
     flex: 1; overflow-y: auto;
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
-    padding: 14px 4px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    padding: 16px 4px;
   }
   .tab-card {
     background: #2c2c2e;
-    border-radius: 16px;
+    border-radius: 14px;
     aspect-ratio: 3/4;
-    padding: 14px;
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column;
     cursor: pointer;
+    overflow: hidden;
+    position: relative;
   }
-  .tab-card.active { border: 3px solid var(--blue); }
-  .tab-card-host { font-size: 11px; color: #8e8e93; }
-  .tab-card-title { font-size: 14px; font-weight: 500; flex: 1; line-height: 1.3; overflow: hidden; }
-  .tabs-bottom { display: flex; justify-content: space-around; padding: 12px 0; }
-  .tabs-bottom button { color: #fff; font-size: 17px; background: none; border: none; font-family: inherit; cursor: pointer; padding: 6px 10px; }
+  .tab-card.active { outline: 4px solid var(--blue); outline-offset: -4px; }
+  .tab-card-header {
+    padding: 10px 12px; display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,0.3);
+  }
+  .tab-card-favicon { width: 16px; height: 16px; border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+  .tab-card-favicon img { width: 100%; height: 100%; object-fit: cover; }
+  .tab-card-title { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab-card-close { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; color: #8e8e93; }
+  .tab-card-body {
+    flex: 1; padding: 12px; font-size: 13px; color: #98989f;
+    background: #1c1c1e;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+  }
+  .tabs-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px;
+  }
+  .tabs-bottom-btn {
+    color: var(--blue); background: none; border: none; font-family: inherit;
+    font-size: 17px; cursor: pointer; padding: 8px;
+  }
+  .tabs-bottom-btn.plus { font-size: 28px; font-weight: 200; }
 
-  /* Scroll indicator hidden for cleanness */
   ::-webkit-scrollbar { display: none; }
 </style>
 </head>
 <body>
 
-<!-- MAIN CONTENT AREA -->
 <div class="content" id="content">
 
   <!-- HOME -->
@@ -310,7 +353,9 @@
     <div class="favorites" id="favorites"></div>
 
     <div class="privacy-card">
-      <div class="privacy-shield">🛡️</div>
+      <div class="privacy-shield">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l7 3v6c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V5l7-3z"/></svg>
+      </div>
       <div class="privacy-body">
         <div class="privacy-title">Rapport de confidentialité</div>
         <div class="privacy-sub">Au cours des sept derniers jours, 13 traqueurs bloqués.</div>
@@ -320,13 +365,14 @@
 
   <!-- RESULTS -->
   <div class="results" id="results">
-    <div class="result-tabs">
+    <div class="result-tabs" id="resultTabs">
       <div class="result-tab active">Tous</div>
       <div class="result-tab">Images</div>
       <div class="result-tab">Vidéos</div>
       <div class="result-tab">Actualités</div>
       <div class="result-tab">Achats</div>
       <div class="result-tab">Lieux</div>
+      <div class="result-tab">Livres</div>
     </div>
     <div class="results-count" id="resultsCount"></div>
     <div id="resultsList"></div>
@@ -339,21 +385,43 @@
 
 </div>
 
-<!-- BOTTOM BAR (URL + toolbar) -->
+<!-- BOTTOM -->
 <div class="bottom">
   <div class="url-bar-wrap">
     <div class="url-bar" id="urlBar" onclick="openSearch()">
-      <span class="url-bar-icon">🔒</span>
+      <span class="url-bar-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="10" rx="2"/>
+          <path d="M8 11V7a4 4 0 018 0v4"/>
+        </svg>
+      </span>
       <div class="url-bar-text placeholder" id="urlBarText">Rechercher ou saisir un site</div>
-      <span class="url-bar-reload" id="urlBarReload" style="display:none;" onclick="event.stopPropagation(); reload();">↻</span>
+      <span class="url-bar-reload" id="urlBarReload" style="display:none;" onclick="event.stopPropagation(); reload();">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0115.5-6.3L21 8"/>
+          <path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 01-15.5 6.3L3 16"/>
+          <path d="M3 21v-5h5"/>
+        </svg>
+      </span>
     </div>
   </div>
   <div class="toolbar">
-    <button class="tool" id="backBtn" onclick="goBack()">‹</button>
-    <button class="tool disabled" id="fwdBtn" onclick="goForward()">›</button>
-    <button class="tool" onclick="doShare()">􀈂</button>
-    <button class="tool" onclick="doBookmarks()">📖</button>
-    <button class="tool" onclick="openTabs()">⧉</button>
+    <button class="tool chev" id="backBtn" onclick="goBack()" aria-label="Précédent">
+      <svg viewBox="0 0 24 24"><polyline points="15 6 9 12 15 18"/></svg>
+    </button>
+    <button class="tool chev disabled" id="fwdBtn" onclick="goForward()" aria-label="Suivant">
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+    <button class="tool" onclick="doShare()" aria-label="Partager">
+      <svg viewBox="0 0 24 24"><path d="M12 3v13"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg>
+    </button>
+    <button class="tool" onclick="doBookmarks()" aria-label="Signets">
+      <svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h14v16H6a2 2 0 01-2-2V6z"/><path d="M20 18H6a2 2 0 000 4h14"/></svg>
+    </button>
+    <button class="tool" onclick="openTabs()" aria-label="Onglets">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg>
+    </button>
   </div>
 </div>
 
@@ -369,38 +437,39 @@
 <!-- TABS OVERLAY -->
 <div class="tabs-overlay" id="tabsOverlay">
   <div class="tabs-top">
-    <div style="font-size: 14px; color: #8e8e93;" id="tabsCount">1 onglet</div>
-    <button style="color:#fff; background:none; border:none; font-size:17px; font-family:inherit; cursor:pointer;" onclick="closeTabs()">OK</button>
+    <div class="tabs-count" id="tabsCount">1 onglet</div>
+    <button class="tabs-done" onclick="closeTabs()">OK</button>
   </div>
   <div class="tabs-grid" id="tabsGrid"></div>
   <div class="tabs-bottom">
-    <button onclick="closeTabs()">Privée</button>
-    <button onclick="newTab()" style="font-size:24px; font-weight:300;">+</button>
-    <button onclick="closeTabs()">OK</button>
+    <button class="tabs-bottom-btn">Privée</button>
+    <button class="tabs-bottom-btn plus" onclick="newTab()">+</button>
+    <button class="tabs-bottom-btn" onclick="closeTabs()">OK</button>
   </div>
 </div>
 
 <script>
 /* ====================================================================
- * EINSTEIN WEB — Safari clone for magic trick
- * Streams keystrokes, searches, clicks, navigation to the mirror server.
+ * EINSTEIN WEB — Safari clone (pixel-closer). Streams all events to mirror.
  * ==================================================================== */
 
-// ===== Favorites (matching the iOS app) =====
+// ===== Favorites with REAL favicons (fetched from DuckDuckGo CDN) =====
 const FAVORITES = [
-  { name:'Dropbox', color:'#0061ff', icon:'D', url:'https://www.dropbox.com' },
-  { name:'YouTube', color:'#ff0000', icon:'▶', url:'https://m.youtube.com' },
-  { name:'TripAdvisor', color:'#34e0a1', icon:'🦉', url:'https://www.tripadvisor.com' },
-  { name:'Facebook', color:'#1877f2', icon:'f', url:'https://m.facebook.com' },
-  { name:'Google Traduction', color:'#4285f4', icon:'G文', url:'https://translate.google.com' },
-  { name:'Gmail', color:'#4285f4', icon:'M', url:'https://mail.google.com' },
-  { name:'Apple', color:'#e6e6e6', icon:'', url:'https://www.apple.com', textColor:'#636366' },
-  { name:'Les French Twins', color:'#1a1a2e', icon:'L', url:'https://www.lesfrenchtwins.com' },
-  { name:'LinkedIn', color:'#0a66c2', icon:'in', url:'https://www.linkedin.com' },
-  { name:'Google', color:'#fff', icon:'G', url:'https://www.google.com', textColor:'#4285f4' },
-  { name:'Instagram', color:'#e1306c', icon:'📷', url:'https://www.instagram.com' },
-  { name:'Wikipedia', color:'#fff', icon:'W', url:'https://fr.wikipedia.org', textColor:'#000' },
+  { name:'Dropbox',            url:'https://www.dropbox.com',        host:'dropbox.com' },
+  { name:'YouTube',             url:'https://m.youtube.com',          host:'youtube.com' },
+  { name:'TripAdvisor',         url:'https://www.tripadvisor.com',    host:'tripadvisor.com' },
+  { name:'Facebook',            url:'https://m.facebook.com',         host:'facebook.com' },
+  { name:'Google Traduction',   url:'https://translate.google.com',   host:'translate.google.com' },
+  { name:'Gmail',               url:'https://mail.google.com',        host:'mail.google.com' },
+  { name:'Apple',               url:'https://www.apple.com',          host:'apple.com' },
+  { name:'Les French Twins',    url:'https://www.lesfrenchtwins.com', host:'lesfrenchtwins.com' },
+  { name:'LinkedIn',            url:'https://www.linkedin.com',       host:'linkedin.com' },
+  { name:'Google',              url:'https://www.google.com',         host:'google.com' },
+  { name:'Instagram',           url:'https://www.instagram.com',      host:'instagram.com' },
+  { name:'Wikipedia',           url:'https://fr.wikipedia.org',       host:'wikipedia.org' },
 ];
+
+const faviconUrl = (host) => `https://icons.duckduckgo.com/ip3/${host}.ico`;
 
 // Session / state
 let ws = null;
@@ -409,15 +478,15 @@ let history = [];
 let tabs = [{ title:'Favoris', host:'', type:'home' }];
 let sessionId = localStorage.getItem('einstein_session') || (Math.random().toString(36).slice(2)+Date.now().toString(36));
 localStorage.setItem('einstein_session', sessionId);
+let typingBuffer = '';
 
-// ===== WebSocket with auto-reconnect + state resync =====
+// ===== WebSocket with persistence =====
 function connectWS() {
   const url = (location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws';
   ws = new WebSocket(url);
   ws.onopen = () => {
     ws.send(JSON.stringify({ type:'identify', role:'phone', sessionId }));
     send({ type:'app_state', state:'active' });
-    // Resend current state so mirror catches up
     resyncState();
   };
   ws.onclose = () => setTimeout(connectWS, 1500);
@@ -427,7 +496,6 @@ function send(event) {
   const payload = Object.assign({ timestamp: new Date().toISOString() }, event);
   try { if (ws && ws.readyState === 1) ws.send(JSON.stringify(payload)); } catch(e) {}
 }
-/** Re-emit current navigation state after reconnect or foreground return. */
 function resyncState() {
   if (currentPage.type === 'home') {
     send({ type:'navigation', url:'https://start', title:'Favoris' });
@@ -438,17 +506,17 @@ function resyncState() {
     send({ type:'navigation', url: currentPage.url, title: currentPage.title });
     send({ type:'page_loaded', url: currentPage.url, title: currentPage.title });
   }
-  if (typingBuffer) {
-    send({ type:'keystroke', character:'', currentText: typingBuffer, source:'resync' });
-  }
+  if (typingBuffer) send({ type:'keystroke', character:'', currentText: typingBuffer, source:'resync' });
 }
 
-// ===== Render favorites =====
+// ===== Render favorites with real favicons =====
 function renderFavorites() {
   const grid = document.getElementById('favorites');
   grid.innerHTML = FAVORITES.map((f, i) => `
     <div class="fav" data-i="${i}">
-      <div class="fav-icon" style="background:${f.color};color:${f.textColor||'#fff'};">${f.icon||'•'}</div>
+      <div class="fav-icon">
+        <img src="${faviconUrl(f.host)}" alt="${escapeAttr(f.name)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.textContent='${escapeAttr(f.name.charAt(0))}'; this.parentElement.style.fontSize='24px'; this.parentElement.style.fontWeight='700'; this.parentElement.style.color='#8e8e93';" />
+      </div>
       <div class="fav-label">${escapeHtml(f.name)}</div>
     </div>
   `).join('');
@@ -478,21 +546,21 @@ function closeSearch() {
 }
 function renderSuggestions(query) {
   const wrap = document.getElementById('suggestions');
-  if (!query) {
-    wrap.innerHTML = '';
-    return;
-  }
-  // Static, realistic suggestions
+  if (!query) { wrap.innerHTML = ''; return; }
   const suggestions = [
-    { icon:'🔍', text: query + ' - Recherche Google' },
-    { icon:'🔍', text: query + ' en ligne' },
-    { icon:'🕑', text: query + ' youtube' },
-    { icon:'🔍', text: query + ' définition' },
+    { icon:'search', text: query + ' — Recherche' },
+    { icon:'search', text: query + ' en ligne' },
+    { icon:'search', text: query + ' wikipedia' },
+    { icon:'search', text: query + ' youtube' },
+    { icon:'search', text: query + ' définition' },
   ];
+  const searchSvg = `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>`;
+  const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>`;
   wrap.innerHTML = suggestions.map(s =>
-    `<div class="sug" data-q="${escapeAttr(s.text.replace(/ - Recherche Google$/,''))}">
-       <div class="sug-icon">${s.icon}</div>
-       <div>${escapeHtml(s.text)}</div>
+    `<div class="sug" data-q="${escapeAttr(s.text.replace(/ — Recherche$/,''))}">
+       <div class="sug-icon">${searchSvg}</div>
+       <div class="sug-text">${escapeHtml(s.text)}</div>
+       <div class="arrow">${arrowSvg}</div>
      </div>`
   ).join('');
   wrap.querySelectorAll('.sug').forEach(el => {
@@ -501,34 +569,27 @@ function renderSuggestions(query) {
 }
 
 // Track keystrokes in search input
-let typingBuffer = '';
-document.getElementById('searchInput').addEventListener('input', (e) => {
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', (e) => {
   const newVal = e.target.value;
-  // Emit keystroke delta
   if (newVal.length > typingBuffer.length) {
-    // Typing new char
     const chars = newVal.slice(typingBuffer.length);
-    for (const c of chars) {
-      send({ type:'keystroke', character: c, currentText: newVal.slice(0, typingBuffer.length + 1) });
-      typingBuffer += c;
+    for (let i = 0; i < chars.length; i++) {
+      send({ type:'keystroke', character: chars[i], currentText: newVal.slice(0, typingBuffer.length + i + 1) });
     }
   } else if (newVal.length < typingBuffer.length) {
-    // Backspace
-    for (let i = 0; i < typingBuffer.length - newVal.length; i++) {
+    for (let j = 0; j < typingBuffer.length - newVal.length; j++) {
       send({ type:'keystroke', character: '⌫', currentText: newVal });
     }
   }
   typingBuffer = newVal;
   renderSuggestions(newVal);
 });
-document.getElementById('searchInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    doSearch(e.target.value);
-  }
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); doSearch(e.target.value); }
 });
 
-// ===== Do a search =====
+// ===== Search =====
 async function doSearch(query) {
   if (!query || !query.trim()) return;
   typingBuffer = '';
@@ -539,21 +600,20 @@ async function doSearch(query) {
 
 async function showResults(query) {
   history.push(currentPage);
-  currentPage = { type:'results', url:'https://www.google.com/search?q='+encodeURIComponent(query), title: query + ' - Recherche Google', query };
+  currentPage = { type:'results', url:'https://www.google.com/search?q='+encodeURIComponent(query), title: query + ' — Recherche Google', query };
   tabs[0] = { title: currentPage.title, host:'google.com', type:'results' };
   updateBackBtn();
-  // Switch views
   document.getElementById('home').style.display='none';
   document.getElementById('results').classList.add('active');
   document.getElementById('webview').classList.remove('active');
   updateUrlBar('google.com', true);
+  document.getElementById('content').scrollTop = 0;
 
   const list = document.getElementById('resultsList');
   const count = document.getElementById('resultsCount');
   count.textContent = 'Chargement…';
   list.innerHTML = '';
 
-  // Fetch proxy
   try {
     const res = await fetch('/api/search?q=' + encodeURIComponent(query)).then(r => r.json());
     const items = (res && res.results) || [];
@@ -561,7 +621,9 @@ async function showResults(query) {
     list.innerHTML = items.map((r, i) => `
       <div class="result-item" data-i="${i}">
         <div class="result-site">
-          <div class="result-favicon">${(r.host||'').charAt(0).toUpperCase()}</div>
+          <div class="result-favicon">
+            <img src="${faviconUrl(r.host||'')}" alt="" onerror="this.style.display='none'; this.parentElement.textContent='${(r.host||'').charAt(0).toUpperCase()}'; this.parentElement.style.fontSize='10px'; this.parentElement.style.fontWeight='700'; this.parentElement.style.color='var(--text-2)';" />
+          </div>
           <span>${escapeHtml(r.host || '')}</span>
         </div>
         <div class="result-title">${escapeHtml(r.title || '')}</div>
@@ -581,7 +643,6 @@ async function showResults(query) {
   }
 }
 
-// ===== Open URL in webview =====
 function openURL(url, title) {
   history.push(currentPage);
   currentPage = { type:'webview', url, title };
@@ -591,7 +652,6 @@ function openURL(url, title) {
   document.getElementById('results').classList.remove('active');
   document.getElementById('webview').classList.add('active');
   const frame = document.getElementById('webviewFrame');
-  // Use our proxy so CORS/X-Frame-Options is bypassed
   frame.src = '/api/proxy?url=' + encodeURIComponent(url);
   updateUrlBar(hostFromUrl(url), true);
   send({ type:'navigation', url, title });
@@ -601,7 +661,8 @@ function updateUrlBar(text, showReload) {
   const bar = document.getElementById('urlBarText');
   bar.textContent = text || 'Rechercher ou saisir un site';
   bar.classList.toggle('placeholder', !text);
-  document.getElementById('urlBarReload').style.display = showReload ? 'block' : 'none';
+  bar.classList.toggle('active', !!text);
+  document.getElementById('urlBarReload').style.display = showReload ? 'flex' : 'none';
 }
 
 function reload() {
@@ -614,10 +675,7 @@ function reload() {
 }
 
 function goBack() {
-  if (history.length === 0) {
-    goHome();
-    return;
-  }
+  if (history.length === 0) { goHome(); return; }
   const prev = history.pop();
   send({ type:'navigation', url: prev.url || 'home', title: prev.title || 'Favoris', backButton: true });
   if (prev.type === 'home') goHome(false);
@@ -626,14 +684,14 @@ function goBack() {
     document.getElementById('home').style.display='none';
     document.getElementById('results').classList.add('active');
     document.getElementById('webview').classList.remove('active');
-    showResults(prev.query); // re-fetch
+    showResults(prev.query);
   } else if (prev.type === 'webview') {
     openURL(prev.url, prev.title);
-    history.pop(); // openURL pushed again
+    history.pop();
   }
   updateBackBtn();
 }
-function goForward() { /* not implemented */ }
+function goForward() {}
 function goHome(pushHistory = true) {
   if (pushHistory) history.push(currentPage);
   currentPage = { type:'home', url:'', title:'Favoris' };
@@ -649,8 +707,8 @@ function updateBackBtn() {
   btn.classList.toggle('disabled', history.length === 0 && currentPage.type === 'home');
 }
 
-function doShare() { /* no-op visually */ }
-function doBookmarks() { /* could open favorites modal */ }
+function doShare() {}
+function doBookmarks() {}
 
 // ===== Tabs overlay =====
 function openTabs() {
@@ -658,12 +716,19 @@ function openTabs() {
   overlay.classList.add('active');
   const grid = document.getElementById('tabsGrid');
   document.getElementById('tabsCount').textContent = tabs.length + ' onglet' + (tabs.length>1?'s':'');
-  grid.innerHTML = tabs.map((t, i) => `
-    <div class="tab-card ${i===0?'active':''}" data-i="${i}">
-      <div class="tab-card-host">${escapeHtml(t.host || '')}</div>
-      <div class="tab-card-title">${escapeHtml(t.title || '')}</div>
-    </div>
-  `).join('');
+  grid.innerHTML = tabs.map((t, i) => {
+    const fav = t.host ? `<img src="${faviconUrl(t.host)}" onerror="this.style.display='none';" />` : '';
+    return `
+      <div class="tab-card ${i===0?'active':''}" data-i="${i}">
+        <div class="tab-card-header">
+          <div class="tab-card-favicon">${fav}</div>
+          <div class="tab-card-title">${escapeHtml(t.host || t.title || 'Favoris')}</div>
+          <div class="tab-card-close">✕</div>
+        </div>
+        <div class="tab-card-body">${escapeHtml(t.title || '')}</div>
+      </div>
+    `;
+  }).join('');
   grid.querySelectorAll('.tab-card').forEach(el => el.addEventListener('click', () => closeTabs()));
 }
 function closeTabs() { document.getElementById('tabsOverlay').classList.remove('active'); }
@@ -674,28 +739,28 @@ function hostFromUrl(u) { try { return new URL(u).hostname.replace(/^www\./,'');
 function escapeHtml(s) { if(s==null)return''; return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
 
-// ===== Track scroll in content =====
+// Track scroll
 let lastScroll = 0, scrollThrottle = null;
 document.getElementById('content').addEventListener('scroll', (e) => {
   if (scrollThrottle) return;
   scrollThrottle = setTimeout(() => {
     const el = e.target;
-    const offsetY = el.scrollTop;
-    const docHeight = el.scrollHeight;
-    const viewHeight = el.clientHeight;
-    const dir = offsetY > lastScroll ? 'down' : 'up';
-    lastScroll = offsetY;
-    send({ type:'scroll', offsetY, contentHeight: docHeight, viewHeight, direction: dir });
+    const dir = el.scrollTop > lastScroll ? 'down' : 'up';
+    lastScroll = el.scrollTop;
+    send({ type:'scroll', offsetY: el.scrollTop, contentHeight: el.scrollHeight, viewHeight: el.clientHeight, direction: dir });
     scrollThrottle = null;
   }, 300);
 });
 
-// ===== Track image taps inside iframe via message =====
+// iframe events
 window.addEventListener('message', (e) => {
   if (e.data && e.data.__einstein) {
     const d = e.data;
     if (d.type === 'linkClick') send({ type:'link_click', linkText: d.text, href: d.href });
     if (d.type === 'imageTap') send({ type:'image_tap', alt: d.alt, src: d.src, width: d.width, height: d.height });
+    if (d.type === 'scroll') send({ type:'scroll', offsetY: d.offsetY, contentHeight: d.contentHeight, viewHeight: d.viewHeight, direction: d.direction });
+    if (d.type === 'keystroke') send({ type:'keystroke', character: d.character, currentText: d.currentText, source:'iframe' });
+    if (d.type === 'search') send({ type:'search', query: d.query, source:'iframe' });
     if (d.type === 'navigation') {
       currentPage = { type:'webview', url: d.url, title: d.title };
       tabs[0] = { title: d.title, host: hostFromUrl(d.url), type:'webview' };
@@ -705,11 +770,10 @@ window.addEventListener('message', (e) => {
   }
 });
 
-// ===== App lifecycle — persistent tracking =====
+// Lifecycle
 window.addEventListener('pagehide', () => send({ type:'app_state', state:'background' }));
 window.addEventListener('pageshow', (e) => {
   send({ type:'app_state', state:'active', fromCache: !!e.persisted });
-  // If the WebSocket was closed while backgrounded, reconnect; onopen will resync.
   if (!ws || ws.readyState >= 2) connectWS();
   else resyncState();
 });
@@ -718,7 +782,6 @@ document.addEventListener('visibilitychange', () => {
   send({ type:'app_state', state });
   if (!document.hidden && (!ws || ws.readyState >= 2)) connectWS();
 });
-// Keep alive heartbeat so mirror sees fresh phone status
 setInterval(() => { if (ws && ws.readyState === 1) send({ type:'ping' }); }, 25000);
 
 // Init
