@@ -35,14 +35,64 @@ app.use((req, res, next) => {
     next();
 });
 
-// ===== Apple App Site Association =====
-app.get('/.well-known/apple-app-site-association', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.sendFile(path.join(__dirname, 'public', '.well-known', 'apple-app-site-association'));
-});
-
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ===== REMOTE CONFIG (Einstein Web theme switch) =====
+// In-memory config, persisted to disk so it survives container restarts.
+const fs = require('fs');
+const CONFIG_FILE = path.join(__dirname, 'config.json');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'frenchtwins2026';
+
+function loadConfig() {
+    try {
+        return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    } catch (e) {
+        return { theme: 'classic', version: '1.0' };
+    }
+}
+function saveConfig(cfg) {
+    try { fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2)); } catch (e) {}
+}
+let remoteConfig = loadConfig();
+
+// Public: app reads this at launch
+app.get('/config.json', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.json(remoteConfig);
+});
+
+// Admin: toggle theme (password in query or body)
+app.post('/admin/toggle', (req, res) => {
+    const pw = req.query.password || (req.body && req.body.password);
+    if (pw !== ADMIN_PASSWORD) return res.status(401).json({ error: 'unauthorized' });
+    remoteConfig.theme = remoteConfig.theme === 'modern' ? 'classic' : 'modern';
+    saveConfig(remoteConfig);
+    console.log(`🎭 Theme switched to: ${remoteConfig.theme}`);
+    res.json(remoteConfig);
+});
+
+// Admin: set theme explicitly
+app.post('/admin/set', (req, res) => {
+    const pw = req.query.password || (req.body && req.body.password);
+    if (pw !== ADMIN_PASSWORD) return res.status(401).json({ error: 'unauthorized' });
+    const theme = (req.query.theme || (req.body && req.body.theme) || '').toString();
+    if (!['classic', 'modern'].includes(theme)) return res.status(400).json({ error: 'invalid theme' });
+    remoteConfig.theme = theme;
+    saveConfig(remoteConfig);
+    console.log(`🎭 Theme set to: ${theme}`);
+    res.json(remoteConfig);
+});
+
+// Admin page (HTML)
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Privacy policy (for Apple App Store listing)
+app.get('/privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
+});
 
 // ===== STATE =====
 const eventLog = [];
@@ -262,13 +312,6 @@ app.get('/mirror', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'mirror.html'));
 });
 
-// App Clip routes
-app.get('/clip', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'clip.html'));
-});
-app.get('/clip/*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'clip.html'));
-});
 
 // ===== START =====
 server.listen(PORT, '0.0.0.0', () => {

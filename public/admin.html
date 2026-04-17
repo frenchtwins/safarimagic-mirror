@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einstein — Admin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #1a1a2e;
+    border-radius: 20px;
+    padding: 32px 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #00d4ff, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .sub { color: #888; font-size: 14px; margin-bottom: 24px; }
+  .status {
+    background: #0f0f1e;
+    padding: 20px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    border: 1px solid #2a2a3e;
+  }
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+  .status-label { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-value { font-size: 17px; font-weight: 600; }
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .badge.classic { background: #2a5a8e; color: #aee1ff; }
+  .badge.modern { background: #8e2a5a; color: #ffaee1; }
+
+  input[type=password] {
+    width: 100%;
+    padding: 14px 16px;
+    background: #0f0f1e;
+    border: 1px solid #2a2a3e;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  input[type=password]:focus { outline: none; border-color: #00d4ff; }
+
+  button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 8px;
+  }
+  button:active { transform: scale(0.98); }
+  .btn-toggle {
+    background: linear-gradient(135deg, #00d4ff, #a855f7);
+    color: #000;
+  }
+  .btn-classic { background: #2a5a8e; color: #fff; }
+  .btn-modern { background: #8e2a5a; color: #fff; }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row button { flex: 1; }
+
+  .log {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #666;
+    font-family: 'SF Mono', Menlo, monospace;
+    min-height: 18px;
+  }
+  .error { color: #ff6b6b; }
+  .success { color: #00ff88; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🎭 Einstein Admin</h1>
+  <div class="sub">Switch classic ↔ modern à distance</div>
+
+  <div class="status">
+    <div class="status-row">
+      <span class="status-label">Mode actuel</span>
+      <span class="badge" id="themeBadge">…</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">Téléphone</span>
+      <span class="status-value" id="phoneStatus">…</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">Événements</span>
+      <span class="status-value" id="events">…</span>
+    </div>
+  </div>
+
+  <input type="password" id="pw" placeholder="Mot de passe admin" autocomplete="current-password" />
+
+  <button class="btn-toggle" onclick="toggleTheme()">⇄ Toggle</button>
+
+  <div class="btn-row">
+    <button class="btn-classic" onclick="setTheme('classic')">Classic (review)</button>
+    <button class="btn-modern" onclick="setTheme('modern')">Modern (show)</button>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+async function refresh() {
+  try {
+    const [cfg, ping] = await Promise.all([
+      fetch('/config.json').then(r => r.json()),
+      fetch('/ping').then(r => r.json())
+    ]);
+    const badge = document.getElementById('themeBadge');
+    badge.textContent = cfg.theme;
+    badge.className = 'badge ' + cfg.theme;
+    document.getElementById('phoneStatus').textContent = ping.phoneConnected ? '🟢 connecté' : '⚫️ déconnecté';
+    document.getElementById('events').textContent = ping.events;
+  } catch (e) { log('Erreur refresh', true); }
+}
+async function toggleTheme() {
+  const pw = document.getElementById('pw').value;
+  if (!pw) return log('Mot de passe requis', true);
+  const r = await fetch('/admin/toggle?password=' + encodeURIComponent(pw), { method: 'POST' });
+  if (r.ok) { log('✓ Toggle OK'); refresh(); } else { log('❌ Mot de passe invalide', true); }
+}
+async function setTheme(theme) {
+  const pw = document.getElementById('pw').value;
+  if (!pw) return log('Mot de passe requis', true);
+  const r = await fetch('/admin/set?password=' + encodeURIComponent(pw) + '&theme=' + theme, { method: 'POST' });
+  if (r.ok) { log('✓ → ' + theme); refresh(); } else { log('❌ Mot de passe invalide', true); }
+}
+function log(msg, isError) {
+  const el = document.getElementById('log');
+  el.className = 'log ' + (isError ? 'error' : 'success');
+  el.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+}
+refresh();
+setInterval(refresh, 5000);
+</script>
+
+</body>
+</html>
