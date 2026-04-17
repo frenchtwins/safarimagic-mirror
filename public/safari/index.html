@@ -917,24 +917,86 @@ function closeSearch() {
 async function renderSuggestions(query) {
   const wrap = document.getElementById('suggestions');
   if (!query) { wrap.innerHTML = ''; return; }
-  // Try Google suggest, fallback to stub
-  let items = [];
+
+  const q = query.toLowerCase();
+
+  // 1. Local matches (history + favorites) — instant, no delay
+  const histMatches = historyItems.filter(h => (h.title||'').toLowerCase().includes(q) || (h.url||'').toLowerCase().includes(q)).slice(0, 3);
+  const favMatches = FAVORITES.filter(f => f.name.toLowerCase().includes(q) || f.host.toLowerCase().includes(q)).slice(0, 2);
+
+  // 2. Google suggestions (from server)
+  let googleSug = [];
   try {
     const r = await fetch('/api/suggest?q=' + encodeURIComponent(query)).then(r => r.json());
-    items = (r.suggestions || []).slice(0, 8);
+    googleSug = (r.suggestions || []).slice(0, 6).filter(s => s.toLowerCase() !== q);
   } catch (e) {}
-  if (!items.length) items = [query + ' — Recherche', query + ' en ligne', query + ' wikipedia'];
 
   const searchSvg = `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>`;
   const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>`;
-  wrap.innerHTML = items.map(t =>
-    `<div class="sug" data-q="${escA(t)}">
-       <div class="sug-icon">${searchSvg}</div>
-       <div class="sug-text">${esc(t)}</div>
-       <div class="arrow">${arrowSvg}</div>
-     </div>`
-  ).join('');
-  wrap.querySelectorAll('.sug').forEach(el => el.addEventListener('click', () => doSearch(el.dataset.q)));
+  const clockSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>`;
+
+  let html = '';
+
+  // "Aller à '[query]'" — always first if looks like a domain
+  if (/\.[a-z]{2,}/i.test(query) && !query.includes(' ')) {
+    const url = query.startsWith('http') ? query : 'https://' + query;
+    html += `<div class="sug sug-url" data-url="${escA(url)}" data-title="${escA(query)}">
+      <div class="sug-icon">${searchSvg}</div>
+      <div class="sug-text"><div style="color:var(--blue);">Aller à "${esc(query)}"</div></div>
+      <div class="arrow">${arrowSvg}</div>
+    </div>`;
+  }
+
+  // Favoris matches
+  favMatches.forEach(f => {
+    html += `<div class="sug" data-url="${escA(f.url)}" data-title="${escA(f.name)}" data-host="${escA(f.host)}" data-kind="fav">
+      <div class="sug-icon" style="border-radius:4px; background:#fff; overflow:hidden;"><img src="${faviconUrl(f.host)}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none';" /></div>
+      <div class="sug-text">${esc(f.name)}<div style="font-size:12px; color:var(--text-2);">${esc(f.host)}</div></div>
+      <div class="arrow">${arrowSvg}</div>
+    </div>`;
+  });
+
+  // History matches
+  histMatches.forEach(h => {
+    html += `<div class="sug" data-url="${escA(h.url||'')}" data-title="${escA(h.title||'')}" data-host="${escA(h.host||'')}" data-kind="hist" data-type="${escA(h.type||'')}">
+      <div class="sug-icon">${clockSvg}</div>
+      <div class="sug-text">${esc(h.title||'')}<div style="font-size:12px; color:var(--text-2);">${esc(h.url||'')}</div></div>
+      <div class="arrow">${arrowSvg}</div>
+    </div>`;
+  });
+
+  // Google suggestions
+  googleSug.forEach(t => {
+    html += `<div class="sug" data-q="${escA(t)}" data-kind="search">
+      <div class="sug-icon">${searchSvg}</div>
+      <div class="sug-text">${highlightMatch(t, query)}</div>
+      <div class="arrow">${arrowSvg}</div>
+    </div>`;
+  });
+
+  wrap.innerHTML = html || `<div class="sug" data-q="${escA(query)}">
+    <div class="sug-icon">${searchSvg}</div>
+    <div class="sug-text">${esc(query)}</div>
+    <div class="arrow">${arrowSvg}</div>
+  </div>`;
+
+  wrap.querySelectorAll('.sug').forEach(el => el.addEventListener('click', () => {
+    if (el.dataset.url) {
+      closeSearch();
+      const title = el.dataset.title || el.dataset.url;
+      send({ type:'link_click', linkText: title, href: el.dataset.url });
+      openURL(el.dataset.url, title, el.dataset.host || hostFromUrl(el.dataset.url));
+    } else if (el.dataset.q) {
+      doSearch(el.dataset.q);
+    }
+  }));
+}
+
+// Highlight matching substring in suggestion (Safari bolds the part you're typing)
+function highlightMatch(text, query) {
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx < 0) return esc(text);
+  return esc(text.slice(0, idx)) + '<b style="font-weight:600;">' + esc(text.slice(idx, idx + query.length)) + '</b>' + esc(text.slice(idx + query.length));
 }
 
 const searchInput = document.getElementById('searchInput');
