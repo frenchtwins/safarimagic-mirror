@@ -214,22 +214,73 @@
   .dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
   .dot.off { background: rgba(255,255,255,0.2); }
 
-  /* PASSWORD INPUT */
+  /* PASSWORD INPUT + toggle eye + validate */
   .pw-wrap {
     margin-bottom: 16px;
-    padding: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 4px 4px 6px;
+    transition: all 0.2s;
+  }
+  .pw-wrap.valid {
+    border-color: rgba(48, 209, 88, 0.5);
+    box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.15);
+  }
+  .pw-wrap.invalid {
+    border-color: rgba(255, 55, 95, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 55, 95, 0.15);
+    animation: shake 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
   }
   .pw-input {
-    width: 100%;
-    padding: 16px 20px;
+    flex: 1;
+    padding: 14px 16px;
     background: transparent;
     border: none;
     color: var(--text);
     font-size: 16px;
     font-family: inherit;
     outline: none;
+    letter-spacing: 0.5px;
   }
-  .pw-input::placeholder { color: var(--text-faint); }
+  .pw-input::placeholder { color: var(--text-faint); letter-spacing: 0; }
+  .pw-icon-btn {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pw-icon-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .pw-validate {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .pw-validate:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(10,132,255,0.4); }
+  .pw-validate:active { transform: scale(0.96); }
+  .pw-validate.ok {
+    background: linear-gradient(135deg, var(--green), #2da05c);
+  }
 
   /* ACTION BUTTONS */
   .actions {
@@ -365,8 +416,10 @@
     </div>
   </div>
 
-  <div class="glass pw-wrap">
+  <div class="glass pw-wrap" id="pwWrap">
     <input type="password" class="pw-input" id="pw" placeholder="Mot de passe admin" autocomplete="current-password" />
+    <button class="pw-icon-btn" id="pwEye" type="button" onclick="togglePw()" title="Afficher / masquer">👁</button>
+    <button class="pw-validate" id="pwBtn" type="button" onclick="validatePw()">Valider</button>
   </div>
 
   <div class="actions">
@@ -408,6 +461,42 @@
 
 <script>
 let lastSwitchTs = localStorage.getItem('einstein_lastSwitch') || null;
+let pwValidated = false;
+
+function togglePw() {
+  const inp = document.getElementById('pw');
+  const eye = document.getElementById('pwEye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
+
+async function validatePw() {
+  const pw = document.getElementById('pw').value;
+  const wrap = document.getElementById('pwWrap');
+  const btn = document.getElementById('pwBtn');
+  if (!pw) { wrap.className = 'glass pw-wrap invalid'; log('Mot de passe requis', true); return; }
+  // Try a harmless "set current theme" call to validate
+  try {
+    const cfg = await fetch('/config.json').then(r => r.json());
+    const currentTheme = cfg.theme || 'classic';
+    const r = await fetch('/admin/set?password=' + encodeURIComponent(pw) + '&theme=' + currentTheme, { method: 'POST' });
+    if (r.ok) {
+      pwValidated = true;
+      wrap.className = 'glass pw-wrap valid';
+      btn.textContent = '✓ Validé';
+      btn.className = 'pw-validate ok';
+      log('✓ Mot de passe correct');
+      setTimeout(() => { wrap.className = 'glass pw-wrap'; }, 3000);
+    } else {
+      pwValidated = false;
+      wrap.className = 'glass pw-wrap invalid';
+      btn.textContent = 'Valider';
+      btn.className = 'pw-validate';
+      log(r.status === 401 ? '❌ Mot de passe incorrect' : '❌ Erreur ' + r.status, true);
+      setTimeout(() => { wrap.className = 'glass pw-wrap'; }, 600);
+    }
+  } catch (e) { log('Erreur : ' + e.message, true); }
+}
 
 async function refresh() {
   try {
@@ -463,6 +552,20 @@ function log(msg, isError) {
 refresh();
 setInterval(refresh, 4000);
 document.getElementById('pw').focus();
+
+// Allow Enter key on password field to validate
+document.getElementById('pw').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); validatePw(); }
+});
+// Reset validated state on password change
+document.getElementById('pw').addEventListener('input', () => {
+  if (pwValidated) {
+    pwValidated = false;
+    document.getElementById('pwBtn').textContent = 'Valider';
+    document.getElementById('pwBtn').className = 'pw-validate';
+    document.getElementById('pwWrap').className = 'glass pw-wrap';
+  }
+});
 </script>
 
 </body>
