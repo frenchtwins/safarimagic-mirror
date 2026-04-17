@@ -1,0 +1,15 @@
+{
+  "name": "Safari",
+  "short_name": "Safari",
+  "start_url": "/safari/",
+  "scope": "/safari/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "icons": [
+    { "src": "/safari/icons/icon-120.png", "sizes": "120x120", "type": "image/png" },
+    { "src": "/safari/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/safari/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

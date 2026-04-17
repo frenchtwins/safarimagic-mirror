@@ -91,6 +91,122 @@ app.get('/privacy', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
 });
 
+// ===== SAFARI WEB APP (PWA) =====
+
+// Safari fake app shell
+app.get('/safari', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'safari', 'index.html'));
+});
+
+// Search proxy — scrapes DuckDuckGo HTML which allows it
+app.get('/api/search', async (req, res) => {
+    const q = (req.query.q || '').toString().trim();
+    if (!q) return res.json({ results: [], total: 0 });
+    try {
+        const url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(q);
+        const r = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+                'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+            },
+            redirect: 'follow',
+        });
+        const html = await r.text();
+        // Parse results
+        const results = [];
+        const resultRegex = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+        let m;
+        while ((m = resultRegex.exec(html)) !== null && results.length < 15) {
+            let href = m[1];
+            // DDG wraps URLs with a redirect — extract the real URL
+            try {
+                const parsed = new URL(href, 'https://duckduckgo.com');
+                const uddg = parsed.searchParams.get('uddg');
+                if (uddg) href = decodeURIComponent(uddg);
+            } catch(e) {}
+            const title = stripHtml(m[2]).trim();
+            const snippet = stripHtml(m[3]).trim();
+            let host = '';
+            try { host = new URL(href).hostname.replace(/^www\./, ''); } catch(e) {}
+            if (title && href) results.push({ title, snippet, url: href, host });
+        }
+        res.json({ results, total: results.length, query: q });
+    } catch (e) {
+        console.error('[/api/search]', e.message);
+        res.json({ results: [], total: 0, error: e.message });
+    }
+});
+
+// Proxy a remote page through our server to bypass X-Frame-Options / CORS
+app.get('/api/proxy', async (req, res) => {
+    const target = (req.query.url || '').toString();
+    if (!target || !/^https?:\/\//i.test(target)) {
+        return res.status(400).send('Invalid URL');
+    }
+    try {
+        const r = await fetch(target, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+                'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+            },
+            redirect: 'follow',
+        });
+        const contentType = r.headers.get('content-type') || 'text/html';
+        let body = await r.text();
+        // Rewrite links/forms so they also go through the proxy
+        if (contentType.includes('text/html')) {
+            const baseUrl = new URL(target);
+            // Inject a base tag + our tracking script
+            body = body.replace(/<head[^>]*>/i, match =>
+                match + `<base href="${baseUrl.origin}/">\n<script>
+                (function() {
+                    document.addEventListener('click', function(e) {
+                        var a = e.target.closest('a');
+                        if (a) {
+                            var href = a.href || '';
+                            var text = (a.innerText || a.textContent || '').trim().slice(0, 200);
+                            window.parent.postMessage({ __einstein:true, type:'linkClick', text, href }, '*');
+                        }
+                        var img = e.target.closest('img');
+                        if (img && !a) {
+                            window.parent.postMessage({ __einstein:true, type:'imageTap',
+                                alt: img.alt || '', src: img.src || '',
+                                width: img.naturalWidth || img.width || 0,
+                                height: img.naturalHeight || img.height || 0 }, '*');
+                        }
+                    }, true);
+                    // Rewrite all links on load to route through proxy
+                    function rewrite() {
+                        document.querySelectorAll('a[href]').forEach(function(a) {
+                            var href = a.href;
+                            if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
+                                a.setAttribute('data-real-href', href);
+                                a.href = '/api/proxy?url=' + encodeURIComponent(href);
+                            }
+                        });
+                    }
+                    rewrite();
+                    new MutationObserver(rewrite).observe(document.body || document.documentElement, { childList: true, subtree: true });
+                    window.parent.postMessage({ __einstein:true, type:'navigation', url: ${JSON.stringify(target)}, title: document.title || '' }, '*');
+                })();
+                </script>`
+            );
+        }
+        // Strip framing headers so we can display in iframe
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+        res.removeHeader('Content-Security-Policy');
+        res.send(body);
+    } catch (e) {
+        console.error('[/api/proxy]', e.message);
+        res.status(500).send('Proxy error: ' + e.message);
+    }
+});
+
+function stripHtml(s) {
+    return s.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+}
+
 // Static files (AFTER config routes so /config.json hits the dynamic handler)
 app.use(express.static(path.join(__dirname, 'public')));
 
