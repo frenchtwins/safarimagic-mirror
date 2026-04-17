@@ -35,9 +35,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-
 // ===== REMOTE CONFIG (Einstein Web theme switch) =====
 // In-memory config, persisted to disk so it survives container restarts.
 const fs = require('fs');
@@ -93,6 +90,9 @@ app.get('/admin', (req, res) => {
 app.get('/privacy', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
 });
+
+// Static files (AFTER config routes so /config.json hits the dynamic handler)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ===== STATE =====
 const eventLog = [];
