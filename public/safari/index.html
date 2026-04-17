@@ -59,6 +59,28 @@
     -webkit-text-size-adjust: 100%;
     overscroll-behavior: none;
   }
+
+  /* Global spring easing — iOS Safari uses cubic-bezier close to this */
+  :root {
+    --spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Tap feedback: subtle scale on interactive elements */
+  .fav, .pill, .result-item, .related-chip, .section-header, .section-chip,
+  .recent-card, .suggestion-card, .tab-card, .hist-item, .sug,
+  .url-bar, .tool, .url-bar-btn, .tabs-newbtn, .tabs-done, .sheet-close, .sheet-more,
+  .segment, .tab-card-close, .expand-btn, .show-all-btn {
+    transition: transform 0.2s var(--spring), opacity 0.15s var(--ease);
+  }
+  .fav:active, .pill:active, .result-item:active, .related-chip:active,
+  .section-header:active, .section-chip:active, .recent-card:active,
+  .suggestion-card:active, .hist-item:active, .sug:active, .segment:active {
+    transform: scale(0.97);
+    opacity: 0.7;
+  }
+  .tool:active, .url-bar-btn:active, .tabs-newbtn:active { transform: scale(0.88); opacity: 0.5; }
+  .url-bar:active { transform: scale(0.985); }
   body { display:flex; flex-direction:column; }
   ::-webkit-scrollbar { display:none; }
 
@@ -315,9 +337,38 @@
     letter-spacing: -0.5px;
   }
 
-  /* ========== SEARCH OVERLAY ========== */
-  .search-overlay { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; }
-  .search-overlay.active { display:flex; }
+  /* ========== SEARCH OVERLAY (slide from bottom with spring) ========== */
+  .search-overlay {
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:flex; flex-direction:column;
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s var(--spring), opacity 0.2s var(--ease);
+  }
+  .search-overlay.active {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .search-overlay.active .search-input { animation: searchInputIn 0.4s var(--spring) backwards; }
+  @keyframes searchInputIn {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .search-overlay.active .sug {
+    animation: sugIn 0.4s var(--spring) backwards;
+  }
+  .sug:nth-child(1) { animation-delay: 0.04s; }
+  .sug:nth-child(2) { animation-delay: 0.07s; }
+  .sug:nth-child(3) { animation-delay: 0.10s; }
+  .sug:nth-child(4) { animation-delay: 0.13s; }
+  .sug:nth-child(5) { animation-delay: 0.16s; }
+  .sug:nth-child(6) { animation-delay: 0.19s; }
+  @keyframes sugIn {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
   .search-top { display:flex; gap:10px; align-items:center; padding-top:calc(env(safe-area-inset-top, 0px) + 12px); padding-left:12px; padding-right:12px; padding-bottom:10px; }
   .search-input { flex:1; background:var(--url-bg); border:none; border-radius:12px; padding:10px 14px; font-size:17px; font-family:inherit; color:var(--text); outline:none; height:40px; }
   .search-cancel { color:var(--blue); font-size:17px; background:none; border:none; font-family:inherit; padding:8px 4px; cursor:pointer; }
@@ -329,9 +380,32 @@
   .sug .arrow { width:20px; height:20px; color:var(--text-3); transform:rotate(-45deg); }
   .sug .arrow svg { width:100%; height:100%; }
 
-  /* ========== TABS OVERLAY ========== */
-  .tabs-overlay { position:fixed; inset:0; background:#000; z-index:99; display:none; flex-direction:column; padding: env(safe-area-inset-top, 20px) 14px env(safe-area-inset-bottom, 20px); color:#fff; }
-  .tabs-overlay.active { display:flex; }
+  /* ========== TABS OVERLAY (fade + zoom cards in) ========== */
+  .tabs-overlay {
+    position:fixed; inset:0; background:#000; z-index:99;
+    display:flex; flex-direction:column;
+    padding: env(safe-area-inset-top, 20px) 14px env(safe-area-inset-bottom, 20px); color:#fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s var(--ease);
+  }
+  .tabs-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .tabs-overlay.active .tab-card {
+    animation: tabCardIn 0.4s var(--spring) backwards;
+  }
+  .tab-card:nth-child(1) { animation-delay: 0.02s; }
+  .tab-card:nth-child(2) { animation-delay: 0.05s; }
+  .tab-card:nth-child(3) { animation-delay: 0.08s; }
+  .tab-card:nth-child(4) { animation-delay: 0.11s; }
+  .tab-card:nth-child(5) { animation-delay: 0.14s; }
+  .tab-card:nth-child(6) { animation-delay: 0.17s; }
+  @keyframes tabCardIn {
+    from { transform: scale(0.85) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
   .tabs-top-bar { display:flex; align-items:center; justify-content:space-between; padding: 10px 0; }
   .tabs-more { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; font-size:17px; color:#fff; cursor:pointer; }
   .tabs-search { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; }
@@ -362,19 +436,35 @@
     border: none; cursor: pointer;
   }
 
-  /* ========== HISTORY / BOOKMARKS SHEET ========== */
-  .sheet-bg { position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:200; display:none; }
-  .sheet-bg.active { display:block; }
+  /* ========== HISTORY / BOOKMARKS SHEET (slide from bottom with spring, drag to dismiss) ========== */
+  .sheet-bg {
+    position:fixed; inset:0; background:rgba(0,0,0,0.3);
+    z-index:200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease);
+  }
+  .sheet-bg.active { opacity: 1; pointer-events: auto; }
   .sheet {
     position:fixed; left:8px; right:8px; bottom:8px; top: env(safe-area-inset-top, 20px);
     background: var(--card);
     border-radius: 16px;
     z-index: 201;
-    display:none; flex-direction:column;
+    display: flex; flex-direction:column;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.3);
+    transform: translateY(105%);
+    transition: transform 0.4s var(--spring);
+    touch-action: pan-y;
   }
-  .sheet.active { display:flex; }
+  .sheet.active { transform: translateY(0); }
+  .sheet.dragging { transition: none; }
+  .sheet-drag-handle {
+    width: 36px; height: 5px; background: var(--text-3); opacity: 0.6;
+    border-radius: 100px;
+    margin: 8px auto 0;
+    flex-shrink: 0;
+  }
   .sheet-top { display:flex; align-items:center; justify-content:flex-end; gap:10px; padding: 16px 16px 8px; }
   .sheet-more, .sheet-close { width:30px; height:30px; border-radius:50%; background:rgba(118,118,128,0.15); display:flex; align-items:center; justify-content:center; color:var(--text-2); cursor:pointer; font-size:15px; font-weight:700; }
   .sheet-close svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -556,6 +646,7 @@
 <!-- HISTORY / BOOKMARKS SHEET -->
 <div class="sheet-bg" id="sheetBg" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
+  <div class="sheet-drag-handle"></div>
   <div class="sheet-top">
     <div class="sheet-more">⋯</div>
     <div class="sheet-close" onclick="closeSheet()"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></div>
@@ -564,7 +655,17 @@
 </div>
 
 <script>
-/* ===== Einstein Safari Clone — persistent state + pixel-close rendering ===== */
+/* ===== Einstein Safari Clone — persistent state + pixel-close rendering + iOS spring animations ===== */
+
+// Haptic-like visual feedback helper
+function lightTap(el) {
+  if (!el) return;
+  el.animate([
+    { transform: 'scale(1)' },
+    { transform: 'scale(0.96)' },
+    { transform: 'scale(1)' }
+  ], { duration: 220, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+}
 
 const FAVORITES = [
   { name:'Dropbox',            url:'https://www.dropbox.com',        host:'dropbox.com' },
@@ -956,7 +1057,7 @@ function pushHistory(item) {
   localStorage.setItem('einstein_history', JSON.stringify(historyItems));
 }
 
-// ===== Sheet (Bookmarks / Reading list / History) =====
+// ===== Sheet (Bookmarks / Reading list / History) with swipe-to-dismiss =====
 let sheetTab = 'bookmarks'; // bookmarks | reading | history
 function openSheet() {
   document.getElementById('sheetBg').classList.add('active');
@@ -967,6 +1068,43 @@ function closeSheet() {
   document.getElementById('sheetBg').classList.remove('active');
   document.getElementById('sheet').classList.remove('active');
 }
+
+// Swipe down to dismiss sheet
+(function() {
+  const sheet = document.getElementById('sheet');
+  const sheetBg = document.getElementById('sheetBg');
+  let startY = 0, currentY = 0, dragging = false;
+  function onStart(y) {
+    dragging = true;
+    startY = y;
+    currentY = 0;
+    sheet.classList.add('dragging');
+  }
+  function onMove(y) {
+    if (!dragging) return;
+    currentY = Math.max(0, y - startY);
+    sheet.style.transform = `translateY(${currentY}px)`;
+    sheetBg.style.opacity = Math.max(0, 1 - currentY / 400);
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.classList.remove('dragging');
+    if (currentY > 120) {
+      closeSheet();
+    }
+    sheet.style.transform = '';
+    sheetBg.style.opacity = '';
+  }
+  sheet.addEventListener('touchstart', (e) => {
+    // Only start drag from the top area (handle/title)
+    const rect = sheet.getBoundingClientRect();
+    if (e.touches[0].clientY - rect.top < 60) onStart(e.touches[0].clientY);
+  }, { passive: true });
+  sheet.addEventListener('touchmove', (e) => onMove(e.touches[0].clientY), { passive: true });
+  sheet.addEventListener('touchend', onEnd);
+  sheet.addEventListener('touchcancel', onEnd);
+})();
 
 function renderSheet() {
   const scroll = document.getElementById('sheetScroll');
