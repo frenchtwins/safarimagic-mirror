@@ -66,6 +66,73 @@
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* ========== PULL TO REFRESH ========== */
+  .ptr-indicator {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 0;
+    display: flex; align-items: flex-end; justify-content: center;
+    overflow: hidden;
+    pointer-events: none;
+    padding-bottom: 8px;
+    transition: height 0.2s var(--ease);
+    z-index: 1;
+  }
+  .ptr-indicator.visible { height: 50px; }
+  .ptr-spinner {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2.5px solid var(--text-3);
+    border-top-color: var(--text);
+    transition: transform 0.1s linear, opacity 0.2s;
+  }
+  .ptr-spinner.spinning { animation: ptrSpin 0.7s linear infinite; }
+  @keyframes ptrSpin { to { transform: rotate(360deg); } }
+
+  /* ========== CONTEXT MENU (long press on favorite) ========== */
+  .ctx-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 300;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s var(--ease);
+  }
+  .ctx-backdrop.active { opacity: 1; pointer-events: auto; }
+  .ctx-menu {
+    position: fixed;
+    background: rgba(245,245,247,0.85);
+    backdrop-filter: saturate(180%) blur(30px);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    border-radius: 14px;
+    min-width: 250px;
+    overflow: hidden;
+    z-index: 301;
+    opacity: 0;
+    transform: scale(0.85);
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease), transform 0.3s var(--spring);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  }
+  @media (prefers-color-scheme: dark) {
+    .ctx-menu { background: rgba(44,44,46,0.85); }
+  }
+  .ctx-menu.active { opacity: 1; transform: scale(1); pointer-events: auto; }
+  .ctx-item {
+    padding: 14px 16px;
+    font-size: 16px;
+    color: var(--text);
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    border-bottom: 0.33px solid rgba(60,60,67,0.15);
+  }
+  .ctx-item:last-child { border-bottom: none; }
+  .ctx-item:active { background: rgba(120,120,128,0.16); }
+  .ctx-item.destructive { color: #ff3b30; }
+  .ctx-item svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 1.8; fill: none; margin-left: auto; }
+  .ctx-item-icon { margin-right: 8px; flex-shrink: 0; font-size: 18px; width: 22px; text-align: center; }
+
   /* Tap feedback: subtle scale on interactive elements */
   .fav, .pill, .result-item, .related-chip, .section-header, .section-chip,
   .recent-card, .suggestion-card, .tab-card, .hist-item, .sug,
@@ -548,6 +615,9 @@
     </div>
   </div>
 
+  <!-- Pull-to-refresh indicator -->
+  <div class="ptr-indicator" id="ptrIndicator"><div class="ptr-spinner" id="ptrSpinner"></div></div>
+
   <!-- RESULTS -->
   <div class="results" id="results">
     <div class="results-top">
@@ -642,6 +712,10 @@
     </button>
   </div>
 </div>
+
+<!-- CONTEXT MENU (long press) -->
+<div class="ctx-backdrop" id="ctxBackdrop" onclick="closeCtxMenu()"></div>
+<div class="ctx-menu" id="ctxMenu"></div>
 
 <!-- HISTORY / BOOKMARKS SHEET -->
 <div class="sheet-bg" id="sheetBg" onclick="closeSheet()"></div>
@@ -745,11 +819,41 @@ function renderFavorites() {
       <div class="fav-label">${esc(f.name)}</div>
     </div>
   `).join('');
-  grid.querySelectorAll('.fav').forEach(el => el.addEventListener('click', () => {
-    const f = FAVORITES[+el.dataset.i];
-    send({ type:'link_click', linkText: f.name, href: f.url });
-    openURL(f.url, f.name, f.host);
-  }));
+  grid.querySelectorAll('.fav').forEach(el => {
+    el.addEventListener('click', () => {
+      const f = FAVORITES[+el.dataset.i];
+      send({ type:'link_click', linkText: f.name, href: f.url });
+      openURL(f.url, f.name, f.host);
+    });
+    // Long press → context menu
+    let pressTimer = null;
+    const start = (e) => {
+      pressTimer = setTimeout(() => {
+        const f = FAVORITES[+el.dataset.i];
+        const rect = el.getBoundingClientRect();
+        openCtxMenu(rect.left + rect.width/2, rect.top + rect.height/2, buildFavCtxMenu(f));
+        if (navigator.vibrate) navigator.vibrate(10);
+      }, 450);
+    };
+    const cancel = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+    el.addEventListener('touchstart', start, { passive: true });
+    el.addEventListener('touchend', cancel);
+    el.addEventListener('touchmove', cancel);
+    el.addEventListener('touchcancel', cancel);
+    el.addEventListener('mousedown', start);
+    el.addEventListener('mouseup', cancel);
+    el.addEventListener('mouseleave', cancel);
+  });
+}
+
+function buildFavCtxMenu(f) {
+  return [
+    { icon:'🔗', label:'Ouvrir', action: () => { openURL(f.url, f.name, f.host); } },
+    { icon:'↗', label:'Ouvrir dans un nouvel onglet', action: () => { tabs.push({ id: tabId(), page: { type:'webview', url: f.url, title: f.name, host: f.host }, private: privateMode, preview: null }); activeTabIndex = tabs.length - 1; openURL(f.url, f.name, f.host); updateTabsCountBadge(); } },
+    { icon:'📋', label:'Copier', action: () => { navigator.clipboard && navigator.clipboard.writeText(f.url); } },
+    { icon:'🔖', label:'Ajouter aux signets', action: () => { bookmarks.unshift({ title: f.name, url: f.url, host: f.host, ts: Date.now() }); localStorage.setItem('einstein_bookmarks', JSON.stringify(bookmarks)); } },
+    { icon:'📤', label:'Partager…', action: () => {} },
+  ];
 }
 
 // Suggestions on home (static curated cards)
@@ -1291,6 +1395,78 @@ window.addEventListener('message', (e) => {
     }
   }
 });
+
+// ===== Context menu =====
+function openCtxMenu(x, y, items) {
+  const menu = document.getElementById('ctxMenu');
+  menu.innerHTML = items.map((it, i) => `
+    <div class="ctx-item ${it.destructive?'destructive':''}" data-i="${i}">
+      <div class="ctx-item-icon">${it.icon||''}</div>
+      <div>${esc(it.label)}</div>
+    </div>
+  `).join('');
+  menu.querySelectorAll('.ctx-item').forEach(el => el.addEventListener('click', () => {
+    items[+el.dataset.i].action();
+    closeCtxMenu();
+  }));
+  // Position: center on x, above y, but keep within viewport
+  menu.style.left = Math.max(10, Math.min(window.innerWidth - 260, x - 125)) + 'px';
+  menu.style.top = Math.max(10, y - 60) + 'px';
+  document.getElementById('ctxBackdrop').classList.add('active');
+  menu.classList.add('active');
+  send({ type:'app_state', note:'ctx_menu_opened' });
+}
+function closeCtxMenu() {
+  document.getElementById('ctxBackdrop').classList.remove('active');
+  document.getElementById('ctxMenu').classList.remove('active');
+}
+
+// ===== Pull-to-refresh (results page) =====
+(function() {
+  const content = document.getElementById('content');
+  const indicator = document.getElementById('ptrIndicator');
+  const spinner = document.getElementById('ptrSpinner');
+  let startY = 0, pulling = false, pullDistance = 0;
+  content.addEventListener('touchstart', (e) => {
+    if (content.scrollTop > 0) return;
+    if (currentPage.type !== 'results') return;
+    startY = e.touches[0].clientY;
+    pulling = true;
+  }, { passive: true });
+  content.addEventListener('touchmove', (e) => {
+    if (!pulling) return;
+    pullDistance = e.touches[0].clientY - startY;
+    if (pullDistance > 0) {
+      indicator.style.height = Math.min(80, pullDistance * 0.6) + 'px';
+      spinner.style.transform = `rotate(${Math.min(360, pullDistance * 2)}deg)`;
+      spinner.style.opacity = Math.min(1, pullDistance / 60);
+    }
+  }, { passive: true });
+  content.addEventListener('touchend', () => {
+    if (!pulling) return;
+    pulling = false;
+    if (pullDistance > 70) {
+      indicator.classList.add('visible');
+      spinner.classList.add('spinning');
+      if (currentPage.type === 'results') {
+        showResults(currentPage.query).then(() => {
+          setTimeout(() => {
+            indicator.classList.remove('visible');
+            spinner.classList.remove('spinning');
+            indicator.style.height = '';
+          }, 500);
+        }).catch(() => {
+          indicator.classList.remove('visible');
+          spinner.classList.remove('spinning');
+          indicator.style.height = '';
+        });
+      }
+    } else {
+      indicator.style.height = '';
+    }
+    pullDistance = 0;
+  });
+})();
 
 // ===== Scroll tracking =====
 let lastScroll = 0, scrollThrottle = null;
