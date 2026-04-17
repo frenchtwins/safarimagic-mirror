@@ -1,306 +1,100 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Einstein Mirror</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-      background: #000;
-      color: #fff;
-      height: 100vh;
-      width: 100vw;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ===== Header ===== */
-    .header {
-      padding: 16px 20px 12px;
-      background: #1c1c1e;
-      border-bottom: 0.5px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header h1 {
-      font-size: 17px;
-      font-weight: 600;
-    }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #8e8e93;
-    }
-    .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #ff453a;
-      transition: background 0.3s;
-    }
-    .dot.connected { background: #30d158; }
-
-    /* ===== Main display — ce que le magicien voit ===== */
-    .main-display {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      text-align: center;
-      background: #000;
-      position: relative;
-    }
-
-    .latest-type {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #007AFF;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    .latest-query {
-      font-size: 36px;
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: 12px;
-      word-break: break-word;
-      max-width: 90vw;
-      transition: all 0.3s ease;
-    }
-
-    .latest-url {
-      font-size: 13px;
-      color: #8e8e93;
-      word-break: break-all;
-      max-width: 90vw;
-      line-height: 1.4;
-    }
-
-    .waiting-msg {
-      color: #636366;
-      font-size: 16px;
-    }
-
-    .flash {
-      animation: flashIn 0.4s ease;
-    }
-
-    @keyframes flashIn {
-      0% { opacity: 0; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.02); }
-      100% { transform: scale(1); }
-    }
-
-    /* ===== Log (historique discret en bas) ===== */
-    .log-area {
-      max-height: 30vh;
-      overflow-y: auto;
-      background: #1c1c1e;
-      border-top: 0.5px solid #333;
-      padding: 8px 16px;
-    }
-    .log-entry {
-      font-size: 13px;
-      color: #8e8e93;
-      padding: 6px 0;
-      border-bottom: 0.5px solid #222;
-      display: flex;
-      gap: 8px;
-      align-items: baseline;
-    }
-    .log-entry:last-child { border-bottom: none; }
-    .log-time { color: #636366; font-size: 11px; white-space: nowrap; }
-    .log-type {
-      font-size: 10px;
-      text-transform: uppercase;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    .log-type.search { background: #007AFF33; color: #007AFF; }
-    .log-type.navigate { background: #30d15833; color: #30d158; }
-    .log-text { color: #fff; flex: 1; word-break: break-word; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einstein</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body {
+    background: #000;
+    color: rgba(255,255,255,0.95);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; inset: -30%; z-index: 0; pointer-events: none;
+    filter: blur(140px); opacity: 0.5;
+    animation: drift 30s ease-in-out infinite alternate;
+  }
+  body::before {
+    background: radial-gradient(circle at 30% 20%, #0a84ff 0%, transparent 40%),
+                radial-gradient(circle at 70% 80%, #bf5af2 0%, transparent 45%);
+  }
+  body::after {
+    background: radial-gradient(circle at 80% 30%, #ff375f 0%, transparent 40%),
+                radial-gradient(circle at 20% 70%, #30d158 0%, transparent 40%);
+    animation-duration: 36s; animation-direction: alternate-reverse; opacity: 0.3;
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-8%, 5%) scale(1.15); }
+  }
+  main {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px 24px;
+    text-align: center;
+  }
+  .brand {
+    font-size: 13px; font-weight: 600; letter-spacing: 6px; text-transform: uppercase;
+    color: rgba(255,255,255,0.55); margin-bottom: 12px;
+  }
+  h1 {
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 900; letter-spacing: -0.04em; line-height: 1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff 0%, #a8c5ff 50%, #bf5af2 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tagline {
+    font-size: clamp(16px, 2vw, 20px); color: rgba(255,255,255,0.6);
+    max-width: 560px; line-height: 1.5; margin-bottom: 40px;
+  }
+  .links { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  a.link {
+    padding: 14px 24px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.95);
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  a.link:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+  }
+  a.link.primary {
+    background: linear-gradient(135deg, #0a84ff, #bf5af2);
+    border-color: transparent;
+    color: #fff;
+  }
+  a.link.primary:hover { box-shadow: 0 10px 30px rgba(10,132,255,0.4); }
+  .footer {
+    position: absolute; bottom: 20px; left: 0; right: 0;
+    text-align: center;
+    font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 1px;
+  }
+</style>
 </head>
 <body>
-
-  <!-- Header -->
-  <div class="header">
-    <h1>Einstein</h1>
-    <div class="status">
-      <div class="dot" id="dot"></div>
-      <span id="statusText">Connexion...</span>
-    </div>
+<main>
+  <div class="brand">Les French Twins</div>
+  <h1>Einstein</h1>
+  <p class="tagline">Plateforme de contrôle pour l'app iOS. Mirror temps réel, admin distant, pipeline de déploiement.</p>
+  <div class="links">
+    <a class="link primary" href="/mirror">🪞 Ouvrir le Mirror</a>
+    <a class="link" href="/admin">🎭 Admin</a>
+    <a class="link" href="/privacy">🔒 Privacy</a>
   </div>
-
-  <!-- Main display -->
-  <div class="main-display" id="mainDisplay">
-    <p class="waiting-msg" id="waitingMsg">En attente...</p>
-    <div id="latestInfo" style="display:none;">
-      <div class="latest-type" id="latestType">RECHERCHE</div>
-      <div class="latest-query" id="latestQuery"></div>
-      <div class="latest-url" id="latestUrl"></div>
-    </div>
-  </div>
-
-  <!-- Log -->
-  <div class="log-area" id="logArea"></div>
-
-  <script>
-    const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
-    let ws;
-    let lastUrl = '';
-
-    // ===== WebSocket =====
-    function connect() {
-      ws = new WebSocket(WS_URL);
-
-      ws.onopen = () => {
-        document.getElementById('dot').className = 'dot connected';
-        document.getElementById('statusText').textContent = 'Connecté';
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          handleMessage(data);
-        } catch(e) { console.error(e); }
-      };
-
-      ws.onclose = () => {
-        document.getElementById('dot').className = 'dot';
-        document.getElementById('statusText').textContent = 'Reconnexion...';
-        setTimeout(connect, 2000);
-      };
-
-      ws.onerror = () => ws.close();
-    }
-
-    // ===== Handle incoming data =====
-    function handleMessage(data) {
-      const query = data.query || '';
-      const url = data.url || '';
-      const type = data.type || 'search';
-
-      // Éviter les doublons (même URL envoyée 2x)
-      if (url && url === lastUrl) return;
-      lastUrl = url;
-
-      // Extraire le nom de domaine lisible
-      let domain = '';
-      try {
-        const parsed = new URL(url);
-        domain = parsed.hostname.replace('www.', '');
-      } catch {}
-
-      // Texte principal à afficher
-      let displayText = query;
-      if (!displayText || displayText === domain) {
-        // Si c'est juste un domaine, essayer d'extraire l'info utile de l'URL
-        displayText = extractUsefulInfo(url, query);
-      }
-
-      // Mettre à jour l'affichage principal
-      document.getElementById('waitingMsg').style.display = 'none';
-      const infoDiv = document.getElementById('latestInfo');
-      infoDiv.style.display = 'block';
-
-      const typeLabel = type === 'search' ? 'RECHERCHE' : 'NAVIGATION';
-      document.getElementById('latestType').textContent = typeLabel;
-
-      const queryEl = document.getElementById('latestQuery');
-      queryEl.textContent = displayText;
-      queryEl.className = 'latest-query flash';
-      setTimeout(() => queryEl.className = 'latest-query', 500);
-
-      document.getElementById('latestUrl').textContent = domain || url;
-
-      // Ajouter au log
-      addLog(type, displayText, domain);
-    }
-
-    // ===== Extraire info utile d'une URL =====
-    function extractUsefulInfo(url, query) {
-      if (!url) return query || '?';
-
-      try {
-        const parsed = new URL(url);
-        const params = parsed.searchParams;
-
-        // Google search
-        if (parsed.hostname.includes('google') && params.get('q')) {
-          return params.get('q');
-        }
-
-        // Bing
-        if (parsed.hostname.includes('bing') && params.get('q')) {
-          return params.get('q');
-        }
-
-        // YouTube search
-        if (parsed.hostname.includes('youtube') && params.get('search_query')) {
-          return params.get('search_query');
-        }
-
-        // Wikipedia
-        if (parsed.hostname.includes('wikipedia')) {
-          const title = parsed.pathname.split('/wiki/')[1];
-          if (title) return decodeURIComponent(title.replace(/_/g, ' '));
-        }
-
-        // Titre de page depuis le path
-        const pathParts = parsed.pathname.split('/').filter(p => p.length > 0);
-        if (pathParts.length > 0) {
-          const last = pathParts[pathParts.length - 1];
-          // Nettoyer le slug
-          const cleaned = decodeURIComponent(last)
-            .replace(/[-_]/g, ' ')
-            .replace(/\.\w+$/, '');  // enlever extension
-          if (cleaned.length > 2) {
-            return cleaned;
-          }
-        }
-
-        // Fallback: domaine
-        return parsed.hostname.replace('www.', '');
-      } catch {
-        return query || url || '?';
-      }
-    }
-
-    // ===== Log =====
-    function addLog(type, text, domain) {
-      const log = document.getElementById('logArea');
-      const t = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      entry.innerHTML = `
-        <span class="log-time">${t}</span>
-        <span class="log-type ${type}">${type === 'search' ? 'Rech.' : 'Nav.'}</span>
-        <span class="log-text">${text}${domain ? ' <span style="color:#636366">— ' + domain + '</span>' : ''}</span>
-      `;
-      log.prepend(entry);
-      while (log.children.length > 50) log.removeChild(log.lastChild);
-    }
-
-    // ===== Vibrate on new data (mobile) =====
-    function vibrateIfPossible() {
-      if (navigator.vibrate) navigator.vibrate(100);
-    }
-
-    // ===== Start =====
-    connect();
-  </script>
+</main>
+<div class="footer">Mirror v2.0 · safarimagic-mirror.onrender.com</div>
 </body>
 </html>

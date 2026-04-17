@@ -3,601 +3,749 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Einstein Mirror</title>
+<title>Einstein · Mirror</title>
 <style>
-    :root {
-        --bg: #0a0a0f;
-        --card: #1a1a2e;
-        --accent: #00d4ff;
-        --accent2: #ff6b6b;
-        --text: #e0e0e0;
-        --muted: #666;
-        --green: #00ff88;
-        --orange: #ffaa00;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        height: 100vh;
-        overflow: hidden;
-    }
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
 
-    /* ===== HEADER ===== */
-    .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 24px;
-        background: var(--card);
-        border-bottom: 1px solid #2a2a3e;
-    }
-    .header-left { display: flex; align-items: center; gap: 16px; }
-    .logo { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, var(--accent), #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent2); animation: pulse 2s infinite; }
-    .status-dot.connected { background: var(--green); }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-    .status-text { font-size: 13px; color: var(--muted); }
-    .header-right { display: flex; gap: 12px; }
-    .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #333; background: transparent; color: var(--text); cursor: pointer; font-size: 13px; transition: all 0.2s; }
-    .btn:hover { background: #2a2a3e; }
-    .btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  :root {
+    --accent: #0a84ff;
+    --accent-2: #bf5af2;
+    --accent-3: #ff375f;
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --text: rgba(255, 255, 255, 0.95);
+    --text-dim: rgba(255, 255, 255, 0.55);
+    --text-faint: rgba(255, 255, 255, 0.3);
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-stronger: rgba(255, 255, 255, 0.08);
+    --stroke: rgba(255, 255, 255, 0.1);
+  }
 
-    /* ===== MAIN LAYOUT ===== */
-    .main { display: flex; height: calc(100vh - 56px); }
+  html, body {
+    background: #000;
+    color: var(--text);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
 
-    /* ===== LEFT: LIVE PHONE ===== */
-    .phone-panel {
-        width: 340px;
-        min-width: 340px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-right: 1px solid #2a2a3e;
-    }
-    .phone-frame {
-        width: 260px;
-        height: 540px;
-        background: #1c1c1e;
-        border-radius: 44px;
-        border: 6px solid #111;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    }
-    .phone-notch {
-        position: absolute;
-        top: 8px; left: 50%;
-        transform: translateX(-50%);
-        width: 86px; height: 24px;
-        background: #000;
-        border-radius: 14px;
-        z-index: 10;
-    }
-    .phone-screen {
-        width: 100%; height: 100%;
-        background: #1c1c1e;
-        border-radius: 38px;
-        padding: 40px 14px 14px;
-        position: relative;
-        overflow: hidden;
-    }
-    .phone-screen > .live-frame {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        width: 100%; height: 100%;
-        object-fit: contain;
-        background: #000;
-        border-radius: 38px;
-        z-index: 50;
-        display: none;
-    }
-    .phone-screen > .live-frame.active { display: block; }
-    .phone-url-bar {
-        background: #2c2c2e;
-        border-radius: 10px;
-        padding: 8px 12px;
-        font-size: 12px;
-        color: #8e8e93;
-        text-align: center;
-        margin-bottom: 8px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .phone-url-bar .lock { color: var(--green); margin-right: 4px; }
-    .phone-content {
-        flex: 1;
-        font-size: 12px;
-        color: #ccc;
-        overflow: hidden;
-        position: relative;
-        height: calc(100% - 60px);
-    }
-    .typing-display {
-        font-size: 28px;
-        font-weight: 600;
-        color: #fff;
-        text-align: center;
-        padding: 40px 10px;
-        word-break: break-word;
-        min-height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .typing-display.hidden { display: none; }
-    .typing-cursor { animation: blink 0.8s infinite; color: var(--accent); }
-    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  /* Ambient aurora background */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    inset: -30%;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(140px);
+    opacity: 0.45;
+    animation: drift 30s ease-in-out infinite alternate;
+  }
+  body::before {
+    background:
+      radial-gradient(circle at 20% 30%, #0a84ff 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, #bf5af2 0%, transparent 45%);
+  }
+  body::after {
+    background:
+      radial-gradient(circle at 70% 20%, #ff375f 0%, transparent 40%),
+      radial-gradient(circle at 30% 80%, #30d158 0%, transparent 40%);
+    animation-duration: 36s;
+    animation-direction: alternate-reverse;
+    opacity: 0.25;
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-10%, 8%) scale(1.2); }
+  }
 
-    .touch-dot {
-        position: absolute;
-        width: 30px; height: 30px;
-        border-radius: 50%;
-        background: rgba(0, 212, 255, 0.4);
-        border: 2px solid var(--accent);
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        transition: opacity 0.3s, transform 0.1s;
-        z-index: 100;
-    }
-    .touch-dot.active { background: rgba(0, 212, 255, 0.6); transform: translate(-50%, -50%) scale(1.3); }
+  /* Glass utility */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    border: 1px solid var(--stroke);
+    border-radius: 22px;
+  }
 
-    .phone-label { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
+  /* ===== HEADER ===== */
+  .header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--stroke);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: saturate(180%) blur(30px);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, #a8c5ff 50%, #bf5af2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--glass);
+    border: 1px solid var(--stroke);
+    color: var(--text-dim);
+  }
+  .status {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-3);
+    box-shadow: 0 0 8px var(--accent-3);
+  }
+  .status-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .actions { display: flex; gap: 8px; }
+  .btn {
+    padding: 9px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--stroke);
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: var(--glass-stronger); border-color: rgba(255,255,255,0.18); }
+  .btn.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent;
+    color: #fff;
+  }
 
-    /* ===== CENTER: BIG TEXT MODE ===== */
-    .big-text-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        position: relative;
-    }
-    .big-text {
-        font-size: 72px;
-        font-weight: 800;
-        text-align: center;
-        word-break: break-word;
-        max-width: 90%;
-        line-height: 1.2;
-        transition: all 0.15s;
-    }
-    .big-text.search { color: #fff; }
-    .big-text.link { color: var(--accent); font-size: 48px; }
-    .big-text.navigate { color: var(--orange); font-size: 36px; }
-    .big-label {
-        font-size: 16px;
-        color: var(--muted);
-        margin-top: 16px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-    .big-image {
-        max-width: 80%;
-        max-height: 60vh;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    }
+  /* ===== LAYOUT ===== */
+  .main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(320px, 400px) 1fr minmax(320px, 420px);
+    gap: 20px;
+    padding: 20px;
+    height: calc(100vh - 56px);
+  }
 
-    /* ===== RIGHT: TIMELINE ===== */
-    .timeline-panel {
-        width: 380px;
-        min-width: 380px;
-        border-left: 1px solid #2a2a3e;
-        display: flex;
-        flex-direction: column;
-    }
-    .timeline-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid #2a2a3e;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .timeline-header h3 { font-size: 15px; font-weight: 600; }
-    .event-count { font-size: 12px; color: var(--muted); }
+  /* ===== PHONE PANEL ===== */
+  .phone-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .phone {
+    position: relative;
+    width: min(280px, 100%);
+    aspect-ratio: 9 / 19.5;
+    background: #000;
+    border-radius: 44px;
+    padding: 8px;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.06),
+      0 30px 80px rgba(0,0,0,0.7),
+      0 0 140px rgba(10, 132, 255, 0.15);
+  }
+  .phone-bezel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 38px;
+    background: #0a0a0a;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  /* Live image fills the ENTIRE bezel, edge to edge */
+  .live-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: none;
+    z-index: 1;
+  }
+  .live-frame.active { display: block; }
 
-    .timeline {
-        flex: 1;
-        overflow-y: auto;
-        padding: 12px;
-    }
-    .timeline::-webkit-scrollbar { width: 4px; }
-    .timeline::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+  /* Default state (no live) */
+  .phone-idle {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 2;
+    color: var(--text-dim);
+    font-size: 14px;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .phone-idle.hidden { display: none; }
+  .phone-idle .ring {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--stroke);
+    border-top-color: var(--accent);
+    animation: spin 1.5s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-    .event-item {
-        display: flex;
-        gap: 12px;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 4px;
-        transition: background 0.2s;
-        animation: slideIn 0.3s ease;
-    }
-    .event-item:hover { background: #1a1a2e; }
-    .event-item.highlight { background: rgba(0, 212, 255, 0.1); }
-    @keyframes slideIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+  /* Dynamic Island overlay */
+  .island {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 32px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  /* Show island only when live is active */
+  .live-frame.active ~ .island { opacity: 1; }
 
-    .event-time { font-size: 11px; color: var(--muted); min-width: 55px; padding-top: 2px; font-family: 'SF Mono', monospace; }
-    .event-icon { font-size: 16px; min-width: 24px; text-align: center; }
-    .event-body { flex: 1; min-width: 0; }
-    .event-title { font-size: 13px; font-weight: 600; color: #fff; }
-    .event-detail { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Touch dot overlay */
+  .touch-dot {
+    position: absolute;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(10,132,255,0.8) 0%, rgba(10,132,255,0) 70%);
+    z-index: 10;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: ripple 0.6s ease-out;
+  }
+  @keyframes ripple {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  }
 
-    .scroll-bar {
-        margin-top: 8px;
-        height: 4px;
-        background: #2a2a3e;
-        border-radius: 2px;
-        overflow: hidden;
-    }
-    .scroll-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+  .phone-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  .phone-label .name { color: var(--text); font-weight: 600; margin-left: 4px; }
 
-    /* ===== FULLSCREEN LIVE ===== */
-    .fullscreen-live {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw; height: 100vh;
-        background: #000;
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-    }
-    .fullscreen-live.active { display: flex; }
-    .fullscreen-live img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-    }
-    .fullscreen-live .exit-btn {
-        position: absolute;
-        top: 20px; right: 20px;
-        background: rgba(255,255,255,0.2);
-        border: none; color: #fff;
-        padding: 10px 20px; border-radius: 8px;
-        cursor: pointer; font-size: 14px;
-        z-index: 10000;
-    }
+  /* Scroll indicator */
+  .scroll-indicator {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 10px 18px;
+    border-radius: 14px;
+  }
+  .scroll-text {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .scroll-bar {
+    width: 180px; height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .scroll-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 2px;
+    transition: width 0.3s;
+    box-shadow: 0 0 8px var(--accent);
+  }
 
-    /* ===== FULLSCREEN ===== */
-    body.fullscreen-mode .phone-panel,
-    body.fullscreen-mode .timeline-panel { display: none; }
-    body.fullscreen-mode .big-text-panel { width: 100%; }
-    body.fullscreen-mode .big-text { font-size: 120px; }
+  /* ===== BIG TEXT CENTER ===== */
+  .center-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .typing-card {
+    padding: 40px 30px;
+    min-width: 400px;
+    max-width: 100%;
+    text-align: center;
+  }
+  .typing-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 16px;
+  }
+  .typing-text {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, #a8c5ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    min-height: 1.2em;
+    word-break: break-word;
+  }
+  .typing-text.empty { color: var(--text-faint); -webkit-text-fill-color: var(--text-faint); font-weight: 500; font-size: 28px; }
+  .typing-sub {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
 
-    @media (max-width: 900px) {
-        .phone-panel { display: none; }
-        .timeline-panel { width: 300px; min-width: 300px; }
+  /* ===== TIMELINE ===== */
+  .timeline-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+  .timeline-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--stroke);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .timeline-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .timeline-count {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--glass-stronger);
+  }
+  .timeline {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .timeline::-webkit-scrollbar { width: 6px; }
+  .timeline::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  .event {
+    display: flex; gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    animation: slideIn 0.3s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .event:hover { background: var(--glass); border-color: var(--stroke); }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .event-time {
+    font-size: 10px;
+    color: var(--text-faint);
+    font-family: 'SF Mono', monospace;
+    min-width: 44px;
+    padding-top: 3px;
+    font-weight: 500;
+  }
+  .event-icon {
+    width: 28px; height: 28px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    background: var(--glass-stronger);
+  }
+  .event-body { flex: 1; min-width: 0; }
+  .event-label {
+    font-size: 10px;
+    color: var(--text-faint);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .event-text {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+  .event-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* ===== FULLSCREEN LIVE ===== */
+  .fullscreen-live {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .fullscreen-live.active { display: flex; }
+  .fullscreen-live img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .exit-btn {
+    position: absolute;
+    top: 20px; right: 20px;
+    padding: 10px 18px;
+    border-radius: 100px;
+    border: 1px solid var(--stroke);
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 320px 1fr; }
+    .timeline-panel { display: none; }
+  }
+  @media (max-width: 768px) {
+    .main {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      height: auto;
+      min-height: calc(100vh - 56px);
     }
-    @media (max-width: 600px) {
-        .timeline-panel { display: none; }
-        .big-text { font-size: 48px; }
-    }
+    .phone { width: 240px; }
+    .typing-card { min-width: 0; padding: 24px 20px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="header-left">
-        <div class="logo">Einstein</div>
-        <div class="status-dot" id="statusDot"></div>
-        <span class="status-text" id="statusText">Connexion...</span>
+<header class="header">
+  <div class="brand">
+    <div class="logo">Einstein</div>
+    <div class="tag">Mirror</div>
+  </div>
+  <div class="status">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">Connexion…</span>
+  </div>
+  <div class="actions">
+    <button class="btn" id="btnLive" onclick="toggleLiveFullscreen()">📺 Live full</button>
+    <button class="btn" onclick="clearLog()">🗑 Effacer</button>
+    <a class="btn" href="/admin" style="text-decoration:none;">🎭 Admin</a>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- PHONE PANEL -->
+  <div class="phone-panel">
+    <div class="phone">
+      <div class="phone-bezel">
+        <img class="live-frame" id="liveFrame" alt="Live" />
+        <div class="phone-idle" id="phoneIdle">
+          <div class="ring"></div>
+          <div>En attente du téléphone…</div>
+        </div>
+        <div class="island"></div>
+        <div class="touch-dot" id="touchDot" style="display:none;"></div>
+      </div>
     </div>
-    <div class="header-right">
-        <button class="btn" id="btnLive" onclick="toggleLiveFullscreen()">📺 LIVE</button>
-        <button class="btn" id="btnFullscreen" onclick="toggleFullscreen()">Plein écran</button>
-        <button class="btn" id="btnClear" onclick="clearLog()">Effacer</button>
+    <div class="phone-label">📱<span class="name" id="phoneName">iPhone du spectateur</span></div>
+    <div class="scroll-indicator glass">
+      <div class="scroll-text" id="scrollText">—</div>
+      <div class="scroll-bar"><div class="scroll-fill" id="scrollFill" style="width:0%"></div></div>
     </div>
+  </div>
+
+  <!-- CENTER: BIG TYPING -->
+  <div class="center-panel">
+    <div class="typing-card glass">
+      <div class="typing-label">Recherche en direct</div>
+      <div class="typing-text empty" id="typingText">en attente…</div>
+      <div class="typing-sub" id="typingSub">Le spectateur n'a pas encore tapé</div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-panel glass">
+    <div class="timeline-header">
+      <div class="timeline-title">Timeline</div>
+      <div class="timeline-count" id="eventCount">0</div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
 </div>
 
 <div class="fullscreen-live" id="fullscreenLive">
-    <button class="exit-btn" onclick="toggleLiveFullscreen()">✕ Quitter</button>
-    <img id="liveFrameFullscreen" alt="Live Fullscreen" />
-</div>
-
-<div class="main">
-    <div class="phone-panel">
-        <div class="phone-frame">
-            <div class="phone-notch"></div>
-            <div class="phone-screen">
-                <div class="phone-url-bar" id="phoneUrlBar">
-                    <span class="lock">🔒</span> Rechercher ou saisir un site
-                </div>
-                <div class="phone-content" id="phoneContent">
-                    <div class="typing-display" id="phoneTyping"></div>
-                </div>
-                <img class="live-frame" id="liveFrame" alt="Live" />
-                <div class="touch-dot" id="touchDot" style="display:none;"></div>
-            </div>
-        </div>
-        <div class="phone-label">
-            <span id="scrollIndicator">📱 iPhone du spectateur</span>
-            <div class="scroll-bar" style="width:200px; margin-top:8px;">
-                <div class="scroll-fill" id="scrollFill" style="width:0%"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="big-text-panel" id="bigTextPanel">
-        <div class="big-text search" id="bigText">En attente...</div>
-        <div class="big-label" id="bigLabel">SAFARIMAGIC MIRROR</div>
-    </div>
-
-    <div class="timeline-panel">
-        <div class="timeline-header">
-            <h3>📋 Timeline</h3>
-            <span class="event-count" id="eventCount">0 événements</span>
-        </div>
-        <div class="timeline" id="timeline"></div>
-    </div>
+  <button class="exit-btn" onclick="toggleLiveFullscreen()">✕ Quitter</button>
+  <img id="liveFrameFullscreen" alt="Live Fullscreen" />
 </div>
 
 <script>
-var ws = null;
-var events = [];
-var currentTyping = '';
-var isFullscreen = false;
-var isTyping = false;
-var lastNavUrl = '';
-var lastNavTime = 0;
+let ws = null;
+let currentTyping = '';
+let events = [];
+let isLiveFullscreen = false;
 
 function connect() {
-    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    var url = proto + '//' + location.host + '/ws';
-    ws = new WebSocket(url);
+  const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws';
+  ws = new WebSocket(wsUrl);
 
-    ws.onopen = function() {
-        ws.send(JSON.stringify({ type: 'identify', role: 'mirror' }));
-        setStatus(true);
-    };
-    ws.onmessage = function(e) {
-        try { handleEvent(JSON.parse(e.data)); } catch(err) {}
-    };
-    ws.onclose = function() {
-        setStatus(false);
-        setTimeout(connect, 3000);
-    };
-    ws.onerror = function() { setStatus(false); };
+  ws.onopen = () => {
+    document.getElementById('statusDot').classList.add('connected');
+    document.getElementById('statusText').textContent = 'Connecté au serveur';
+    ws.send(JSON.stringify({ type: 'identify', role: 'mirror' }));
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      handleMessage(msg);
+    } catch (err) { console.error(err); }
+  };
+
+  ws.onclose = () => {
+    document.getElementById('statusDot').classList.remove('connected');
+    document.getElementById('statusText').textContent = 'Déconnecté — reconnexion…';
+    setTimeout(connect, 2000);
+  };
 }
 
-function setStatus(ok) {
-    document.getElementById('statusDot').className = 'status-dot' + (ok ? ' connected' : '');
-    document.getElementById('statusText').textContent = ok ? 'Connecté au serveur' : 'Déconnecté';
-}
+function handleMessage(msg) {
+  // Initial event log
+  if (msg.type === 'event_log') {
+    (msg.events || []).forEach(e => addEvent(e));
+    updatePhoneStatus(msg.phoneConnected);
+    return;
+  }
 
-function setPhoneStatus(ok) {
-    document.getElementById('statusDot').className = 'status-dot' + (ok ? ' connected' : '');
-    document.getElementById('statusText').textContent = ok ? '📱 Téléphone connecté — LIVE' : '📱 En attente du téléphone...';
-}
+  if (msg.type === 'phone_connected') {
+    updatePhoneStatus(true);
+    return;
+  }
+  if (msg.type === 'phone_disconnected') {
+    updatePhoneStatus(false);
+    document.getElementById('liveFrame').classList.remove('active');
+    document.getElementById('phoneIdle').classList.remove('hidden');
+    return;
+  }
 
-function handleEvent(msg) {
-    if (msg.type === 'event_log') {
-        if (msg.events) { msg.events.forEach(function(e) { addEvent(e, false); }); scrollTimeline(); }
-        if (msg.phoneConnected) setPhoneStatus(true);
-        return;
-    }
-    if (msg.type === 'phone_connected') { setPhoneStatus(true); addEvent({ type: 'app_state', state: 'connected', timestamp: msg.timestamp }, true); return; }
-    if (msg.type === 'phone_disconnected') {
-        setPhoneStatus(false);
-        addEvent({ type: 'app_state', state: 'disconnected', timestamp: msg.timestamp }, true);
-        // Hide live frame, show typing display again
-        var lf = document.getElementById('liveFrame'); if(lf) lf.classList.remove('active');
-        var pt = document.getElementById('phoneTyping'); if(pt) pt.classList.remove('hidden');
-        return;
-    }
-    if (msg.type === 'clear') { events = []; document.getElementById('timeline').innerHTML = ''; document.getElementById('eventCount').textContent = '0'; return; }
+  // Screen frames (live)
+  if (msg.type === 'screen' && msg.frame) {
+    const src = 'data:image/jpeg;base64,' + msg.frame;
+    const img = document.getElementById('liveFrame');
+    img.src = src;
+    img.classList.add('active');
+    document.getElementById('phoneIdle').classList.add('hidden');
+    const fsImg = document.getElementById('liveFrameFullscreen');
+    if (fsImg) fsImg.src = src;
+    return;
+  }
 
-    // Live screen frames — update phone mockup + fullscreen
-    if (msg.type === 'screen') {
-        var src = 'data:image/jpeg;base64,' + msg.frame;
-        var frame = document.getElementById('liveFrame');
-        if (frame && msg.frame) {
-            frame.src = src;
-            frame.classList.add('active');
-            var pt = document.getElementById('phoneTyping');
-            if (pt) pt.classList.add('hidden');
-        }
-        // Also update fullscreen live view
-        var fsFrame = document.getElementById('liveFrameFullscreen');
-        if (fsFrame && msg.frame) { fsFrame.src = src; }
-        return;
-    }
-
-    addEvent(msg, true);
-    updateDisplay(msg);
-}
-
-function addEvent(event, animate) {
-    if (event.type === 'screen') return;
-    if (event.type === 'ping') return;
-    // Filter noisy touch events from timeline
-    if (event.type === 'touch') return;
-    // Deduplicate navigate events (same URL within 3s)
-    if (event.type === 'navigate' || event.type === 'page_loaded') {
-        var url = event.url || '';
-        var now = Date.now();
-        if (url === lastNavUrl && now - lastNavTime < 3000) {
-            return; // Skip duplicate
-        }
-        lastNavUrl = url;
-        lastNavTime = now;
-    }
-    // Throttle scroll events
-    if (event.type === 'scroll') {
-        var ls = events.filter(function(e) { return e.type === 'scroll'; });
-        if (ls.length > 0 && ls[ls.length-1]._t && Date.now() - ls[ls.length-1]._t < 2000) {
-            updateDisplay(event); return;
-        }
-        event._t = Date.now();
-    }
-
-    events.push(event);
-    var f = formatEvent(event);
-    if (!f) return;
-
-    var tl = document.getElementById('timeline');
-    var el = document.createElement('div');
-    el.className = 'event-item' + (animate ? ' highlight' : '');
-    el.innerHTML = '<div class="event-time">' + formatTime(event.timestamp) + '</div><div class="event-icon">' + f.icon + '</div><div class="event-body"><div class="event-title">' + esc(f.title) + '</div>' + (f.detail ? '<div class="event-detail">' + esc(f.detail) + '</div>' : '') + '</div>';
-    tl.appendChild(el);
-
-    if (animate) { setTimeout(function() { el.classList.remove('highlight'); }, 2000); scrollTimeline(); }
-    document.getElementById('eventCount').textContent = events.length + ' événements';
-    while (tl.children.length > 200) tl.removeChild(tl.firstChild);
-}
-
-function formatTime(ts) {
-    if (!ts) return '--:--';
-    var d = new Date(ts);
-    if (isNaN(d.getTime())) d = new Date(parseInt(ts));
-    return d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
-
-function formatEvent(e) {
-    switch(e.type) {
-        case 'search': return { icon:'🔍', title: e.query||'', detail:'' };
-        case 'keystroke': return { icon:'⌨️', title:'"'+(e.fullText||'')+'"', detail:'touche: '+(e.character||'') };
-        case 'navigate': return { icon:'🌐', title: e.query||e.pageTitle||'', detail: e.url||'' };
-        case 'page_loaded': return { icon:'✅', title: e.pageTitle||'Page chargée', detail: e.domain||'' };
-        case 'link_click': return { icon:'👆', title: e.linkText||'Lien', detail: e.href||'' };
-        case 'image_tap': return { icon:'🖼️', title: e.alt||'Image', detail: (e.src||'').substring(0,60) };
-        case 'scroll': return { icon: e.direction==='down'?'⬇️':'⬆️', title:'Scroll '+(e.direction||''), detail: Math.round((e.depth||0)*100)+'%' };
-        case 'touch': if(e.touchType==='begin') return {icon:'👇',title:'Touch',detail:'('+Math.round(e.x||0)+','+Math.round(e.y||0)+')'}; if(e.touchType==='end') return {icon:'👆',title:'Release',detail:''}; return null;
-        case 'search_field': return { icon: e.action==='focus'?'✏️':'❌', title: e.action==='focus'?'Recherche ouverte':'Recherche fermée', detail:'' };
-        case 'suggestion_tap': return { icon:'💡', title:'Suggestion: "'+(e.suggestion||'')+'"', detail:'' };
-        case 'navigation_action': return { icon:'🔄', title: {back:'◀️ Retour',forward:'▶️ Avant',home:'🏠 Accueil'}[e.action]||e.action, detail:'' };
-        case 'app_state': return { icon:'📱', title: {launched:'🚀 App lancée',active:'📱 Active',inactive:'💤 Inactive',background:'🔙 Background',connected:'📱 Connecté',disconnected:'📱 Déconnecté'}[e.state]||e.state, detail:'' };
-        default: return { icon:'📌', title: e.type||'?', detail: JSON.stringify(e).substring(0,50) };
-    }
-}
-
-function updateDisplay(event) {
-    var bt = document.getElementById('bigText');
-    var bl = document.getElementById('bigLabel');
-    var ub = document.getElementById('phoneUrlBar');
-    var pt = document.getElementById('phoneTyping');
-
-    switch(event.type) {
-        case 'keystroke':
-            isTyping = true;
-            currentTyping = event.fullText || '';
-            bt.className = 'big-text search';
-            bt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
-            bl.textContent = 'RECHERCHE EN COURS...';
-            if (pt) pt.innerHTML = esc(currentTyping) + '<span class="typing-cursor">|</span>';
-            break;
-        case 'search':
-            isTyping = false;
-            currentTyping = '';
-            bt.className = 'big-text search';
-            bt.textContent = event.query || '';
-            bl.textContent = '🔍 RECHERCHE';
-            ub.innerHTML = '<span class="lock">🔒</span> google.com';
-            if (pt) pt.textContent = event.query || '';
-            break;
-        case 'navigate': case 'page_loaded':
-            // Don't overwrite center text while user is typing
-            if (isTyping) break;
-            var t = event.pageTitle || event.query || event.domain || '';
-            bt.className = 'big-text navigate';
-            bt.textContent = t;
-            var d = event.domain || extractDomain(event.url);
-            bl.textContent = '🌐 ' + d;
-            ub.innerHTML = '<span class="lock">🔒</span> ' + esc(d);
-            if (pt) pt.textContent = t;
-            break;
-        case 'link_click':
-            isTyping = false;
-            bt.className = 'big-text link';
-            bt.textContent = event.linkText || '';
-            bl.textContent = '👆 LIEN CLIQUÉ';
-            break;
-        case 'image_tap':
-            if (event.src) {
-                document.getElementById('bigTextPanel').innerHTML = '<img class="big-image" src="'+esc(event.src)+'" onerror="this.style.display=\'none\'" /><div class="big-label">🖼️ IMAGE</div><div class="big-text link" id="bigText" style="font-size:24px;margin-top:12px">'+esc(event.alt||'')+'</div>';
-            }
-            break;
-        case 'scroll':
-            var depth = Math.round((event.depth||0)*100);
-            document.getElementById('scrollFill').style.width = depth + '%';
-            document.getElementById('scrollIndicator').textContent = (event.direction==='down'?'⬇️ Scroll bas':'⬆️ Scroll haut')+' ('+depth+'%)';
-            break;
-        case 'touch':
-            updateTouchDot(event);
-            break;
-        case 'search_field':
-            if (event.action === 'focus') {
-                isTyping = true;
-                bt.className = 'big-text search';
-                bt.innerHTML = '<span class="typing-cursor">|</span>';
-                bl.textContent = '✏️ PRÊT À ÉCRIRE...';
-                currentTyping = '';
-                if (pt) pt.innerHTML = '<span class="typing-cursor">|</span>';
-            } else {
-                isTyping = false;
-            }
-            break;
-        case 'suggestion_tap':
-            bt.className = 'big-text search';
-            bt.textContent = event.suggestion || '';
-            bl.textContent = '💡 SUGGESTION CHOISIE';
-            break;
-    }
-}
-
-function updateTouchDot(event) {
-    var dot = document.getElementById('touchDot');
-    if (!dot) return;
-    if (event.touchType === 'begin' || event.touchType === 'move') {
-        var ps = document.querySelector('.phone-screen');
-        if (!ps) return;
-        var r = ps.getBoundingClientRect();
-        dot.style.display = 'block';
-        dot.style.left = ((event.relX||0)*(r.width-24)+12) + 'px';
-        dot.style.top = ((event.relY||0)*(r.height-44)+32) + 'px';
-        dot.className = 'touch-dot active';
-    } else if (event.touchType === 'end') {
-        dot.className = 'touch-dot';
-        setTimeout(function(){ dot.style.display='none'; }, 300);
-    }
-}
-
-function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
-function extractDomain(u) { try { return new URL(u).hostname.replace('www.',''); } catch(e) { return u||''; } }
-function scrollTimeline() { var t=document.getElementById('timeline'); t.scrollTop=t.scrollHeight; }
-
-function toggleFullscreen() {
-    isFullscreen = !isFullscreen;
-    document.body.classList.toggle('fullscreen-mode', isFullscreen);
-    document.getElementById('btnFullscreen').classList.toggle('active', isFullscreen);
-    document.getElementById('btnFullscreen').textContent = isFullscreen ? 'Normal' : 'Plein écran';
-    if (isFullscreen && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-    else if (!isFullscreen && document.exitFullscreen) document.exitFullscreen();
-}
-
-var isLiveFullscreen = false;
-function toggleLiveFullscreen() {
-    isLiveFullscreen = !isLiveFullscreen;
-    document.getElementById('fullscreenLive').classList.toggle('active', isLiveFullscreen);
-    document.getElementById('btnLive').classList.toggle('active', isLiveFullscreen);
-    if (isLiveFullscreen && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-    else if (!isLiveFullscreen && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
-}
-
-function clearLog() {
-    fetch(location.origin + '/clear', { method: 'POST' });
+  // Clear
+  if (msg.type === 'clear') {
     events = [];
-    document.getElementById('timeline').innerHTML = '';
-    document.getElementById('eventCount').textContent = '0';
-    document.getElementById('bigTextPanel').innerHTML = '<div class="big-text search" id="bigText">En attente...</div><div class="big-label" id="bigLabel">SAFARIMAGIC MIRROR</div>';
+    renderTimeline();
+    currentTyping = '';
+    updateTyping('', '');
+    return;
+  }
+
+  // Keystroke — build up typing display
+  if (msg.type === 'keystroke') {
+    if (msg.character === '⌫') {
+      currentTyping = currentTyping.slice(0, -1);
+    } else if (msg.character) {
+      currentTyping += msg.character;
+    }
+    updateTyping(currentTyping, 'en train de taper…');
+    addEvent(msg);
+    return;
+  }
+
+  // Search
+  if (msg.type === 'search') {
+    currentTyping = msg.query || '';
+    updateTyping(currentTyping, 'recherche validée');
+    addEvent(msg);
+    return;
+  }
+
+  // Touch
+  if (msg.type === 'touch') {
+    showTouch(msg);
+    return;
+  }
+
+  // Scroll
+  if (msg.type === 'scroll') {
+    updateScroll(msg);
+    return;
+  }
+
+  // Other events
+  addEvent(msg);
+}
+
+function updatePhoneStatus(connected) {
+  const dot = document.getElementById('statusDot');
+  if (connected) {
+    dot.classList.add('connected');
+    document.getElementById('statusText').textContent = 'Téléphone connecté · live';
+  } else {
+    dot.classList.remove('connected');
+    document.getElementById('statusText').textContent = 'Téléphone hors ligne';
+  }
+}
+
+function updateTyping(text, sub) {
+  const el = document.getElementById('typingText');
+  const sel = document.getElementById('typingSub');
+  if (!text) {
+    el.className = 'typing-text empty';
+    el.textContent = 'en attente…';
+    sel.textContent = 'Le spectateur n\'a pas encore tapé';
+  } else {
+    el.className = 'typing-text';
+    el.textContent = text;
+    sel.textContent = sub || '';
+  }
+}
+
+function updateScroll(msg) {
+  const depth = msg.contentHeight > 0 ? Math.round((msg.offsetY || 0) / Math.max(1, msg.contentHeight - (msg.viewHeight||0)) * 100) : 0;
+  document.getElementById('scrollFill').style.width = Math.min(100, Math.max(0, depth)) + '%';
+  document.getElementById('scrollText').textContent = (msg.direction || '') + ' · ' + depth + '%';
+}
+
+function showTouch(msg) {
+  const dot = document.getElementById('touchDot');
+  const frame = document.querySelector('.phone-bezel');
+  const r = frame.getBoundingClientRect();
+  const relX = msg.x / (msg.screenWidth || 1);
+  const relY = msg.y / (msg.screenHeight || 1);
+  dot.style.left = (relX * r.width) + 'px';
+  dot.style.top = (relY * r.height) + 'px';
+  dot.style.display = 'block';
+  dot.style.animation = 'none';
+  void dot.offsetWidth;
+  dot.style.animation = 'ripple 0.6s ease-out';
+  setTimeout(() => { dot.style.display = 'none'; }, 600);
+}
+
+function addEvent(e) {
+  events.unshift(e);
+  if (events.length > 80) events = events.slice(0, 80);
+  renderTimeline();
+}
+
+function renderTimeline() {
+  const list = document.getElementById('timeline');
+  document.getElementById('eventCount').textContent = events.length;
+  list.innerHTML = events.map(e => renderEvent(e)).join('');
+}
+
+function renderEvent(e) {
+  const time = e.timestamp ? new Date(e.timestamp).toLocaleTimeString('fr-FR', { hour12: false }).slice(0, 8) : '—';
+  const [icon, label, text, meta] = eventVisuals(e);
+  return `
+    <div class="event">
+      <div class="event-time">${escape(time)}</div>
+      <div class="event-icon">${icon}</div>
+      <div class="event-body">
+        <div class="event-label">${escape(label)}</div>
+        <div class="event-text">${escape(text)}</div>
+        ${meta ? `<div class="event-meta">${escape(meta)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function eventVisuals(e) {
+  switch (e.type) {
+    case 'keystroke': return ['⌨️', 'Frappe', '"' + (e.currentText || '') + '"', 'touche : ' + (e.character || '')];
+    case 'search': return ['🔍', 'Recherche', e.query || '', ''];
+    case 'link_click': return ['👆', 'Clic lien', e.linkText || '(sans texte)', e.href || ''];
+    case 'image_tap': return ['🖼️', 'Clic image', e.alt || '(image)', e.src || ''];
+    case 'navigation': return ['🌐', 'Navigation', e.url || '', e.title || ''];
+    case 'page_loaded': return ['✓', 'Page chargée', e.title || e.url || '', ''];
+    default: return ['•', e.type || 'Event', JSON.stringify(e).slice(0, 80), ''];
+  }
+}
+
+function escape(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function clearLog() {
+  await fetch('/clear', { method: 'POST' });
+  events = [];
+  renderTimeline();
+  currentTyping = '';
+  updateTyping('', '');
+}
+
+function toggleLiveFullscreen() {
+  isLiveFullscreen = !isLiveFullscreen;
+  document.getElementById('fullscreenLive').classList.toggle('active', isLiveFullscreen);
+  document.getElementById('btnLive').classList.toggle('active', isLiveFullscreen);
+  if (isLiveFullscreen && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  else if (!isLiveFullscreen && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
 }
 
 connect();
 </script>
+
 </body>
 </html>

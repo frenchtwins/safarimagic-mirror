@@ -2,188 +2,412 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Einstein — Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Einstein · Control</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-    background: #0a0a0f;
-    color: #e0e0e0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+  @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800;900&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
   }
-  .card {
-    background: #1a1a2e;
-    border-radius: 20px;
-    padding: 28px 22px;
-    max-width: 440px;
-    width: 100%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+
+  :root {
+    --accent: #0a84ff;
+    --accent-2: #bf5af2;
+    --accent-3: #ff375f;
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --bg: #000;
+    --text: rgba(255, 255, 255, 0.95);
+    --text-dim: rgba(255, 255, 255, 0.55);
+    --text-faint: rgba(255, 255, 255, 0.35);
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-stroke: rgba(255, 255, 255, 0.12);
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background — animated aurora gradient */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    inset: -30%;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(120px);
+    opacity: 0.5;
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  body::before {
+    background: radial-gradient(circle at 30% 20%, #0a84ff 0%, transparent 40%),
+                radial-gradient(circle at 70% 80%, #bf5af2 0%, transparent 45%);
+  }
+  body::after {
+    background: radial-gradient(circle at 80% 30%, #ff375f 0%, transparent 40%),
+                radial-gradient(circle at 20% 70%, #30d158 0%, transparent 45%);
+    animation-duration: 28s;
+    animation-direction: alternate-reverse;
+    opacity: 0.3;
+  }
+  @keyframes drift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-8%, 5%) scale(1.15); }
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+    min-height: 100vh;
+  }
+
+  header {
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .brand {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
   }
   h1 {
-    font-size: 26px;
-    margin-bottom: 6px;
-    background: linear-gradient(135deg, #00d4ff, #a855f7);
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 0%, #a8c5ff 50%, #bf5af2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .tagline {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* Glass cards */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    border: 1px solid var(--glass-stroke);
+    border-radius: 22px;
+    overflow: hidden;
+  }
+
+  /* HERO STATUS */
+  .hero {
+    padding: 32px 24px;
+    margin-bottom: 16px;
+    text-align: center;
+    position: relative;
+    transition: all 0.5s cubic-bezier(0.2, 0, 0, 1);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    opacity: 0.22;
+    transition: background 0.5s;
+  }
+  .hero.classic::before {
+    background: radial-gradient(circle at 50% 50%, #0a84ff 0%, transparent 70%);
+  }
+  .hero.modern::before {
+    background: radial-gradient(circle at 50% 50%, #ff375f 0%, #bf5af2 40%, transparent 70%);
+  }
+  .hero-label {
+    position: relative;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .hero-mode {
+    position: relative;
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .hero.classic .hero-mode {
+    background: linear-gradient(135deg, #5ac8fa, #0a84ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .sub { color: #888; font-size: 13px; margin-bottom: 18px; }
-
-  /* Status HUGE — no ambiguity */
-  .hero {
-    padding: 28px 20px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-    text-align: center;
-    transition: all 0.3s;
-    border: 3px solid transparent;
-  }
-  .hero.classic {
-    background: linear-gradient(135deg, #1e3a5f, #2a5a8e);
-    border-color: #5bc0eb;
-  }
-  .hero.modern {
-    background: linear-gradient(135deg, #5f1e3a, #8e2a5a);
-    border-color: #ff6bc0;
-  }
-  .hero-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: rgba(255,255,255,0.7);
-    margin-bottom: 6px;
-  }
-  .hero-mode {
-    font-size: 48px;
-    font-weight: 900;
-    color: #fff;
-    line-height: 1;
-    margin-bottom: 8px;
+  .hero.modern .hero-mode {
+    background: linear-gradient(135deg, #ff375f, #bf5af2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   .hero-warn {
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
-    opacity: 0.95;
-    line-height: 1.4;
+    position: relative;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    max-width: 380px;
+    margin: 0 auto;
+    font-weight: 500;
   }
-  .classic .hero-warn::before { content: "✅ "; }
-  .modern .hero-warn::before { content: "🎭 "; }
+  .hero-warn .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-right: 6px;
+  }
+  .hero.classic .tag { background: rgba(10, 132, 255, 0.2); color: #5ac8fa; }
+  .hero.modern .tag { background: rgba(255, 55, 95, 0.2); color: #ff375f; }
 
+  /* META STRIP */
   .meta {
     display: flex;
-    justify-content: space-between;
-    background: #0f0f1e;
-    padding: 12px 16px;
-    border-radius: 10px;
-    margin-bottom: 18px;
-    font-size: 12px;
+    gap: 12px;
+    margin-bottom: 20px;
   }
-  .meta-row { color: #888; }
-  .meta-row strong { color: #e0e0e0; }
-
-  input[type=password] {
-    width: 100%;
+  .meta-cell {
+    flex: 1;
     padding: 14px 16px;
-    background: #0f0f1e;
-    border: 1px solid #2a2a3e;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 16px;
-    margin-bottom: 12px;
   }
-  input[type=password]:focus { outline: none; border-color: #00d4ff; }
-
-  button {
-    width: 100%;
-    padding: 18px;
-    border-radius: 14px;
-    border: none;
-    font-size: 17px;
+  .meta-label {
+    font-size: 10px;
     font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot.off { background: rgba(255,255,255,0.2); }
+
+  /* PASSWORD INPUT */
+  .pw-wrap {
+    margin-bottom: 16px;
+    padding: 4px;
+  }
+  .pw-input {
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    outline: none;
+  }
+  .pw-input::placeholder { color: var(--text-faint); }
+
+  /* ACTION BUTTONS */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .btn {
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 1px solid var(--glass-stroke);
+    background: var(--glass);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     cursor: pointer;
-    transition: all 0.15s;
-    margin-bottom: 10px;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
-  button:active { transform: scale(0.97); }
-  .btn-classic {
-    background: linear-gradient(135deg, #1e3a5f, #2a5a8e);
-    color: #aee1ff;
-    border: 2px solid #5bc0eb;
+  .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
+  .btn:active { transform: scale(0.98); }
+  .btn .left { display: flex; align-items: center; gap: 14px; }
+  .btn .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
   }
-  .btn-modern {
-    background: linear-gradient(135deg, #5f1e3a, #8e2a5a);
-    color: #ffaee1;
-    border: 2px solid #ff6bc0;
-  }
-  .btn-classic.active, .btn-modern.active {
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+  .btn .info { text-align: left; }
+  .btn .title { font-size: 16px; font-weight: 700; }
+  .btn .sub { font-size: 12px; color: var(--text-dim); font-weight: 500; margin-top: 2px; }
+  .btn .chev { color: var(--text-faint); font-size: 14px; }
+
+  .btn-classic .icon { background: linear-gradient(135deg, #5ac8fa, #0a84ff); }
+  .btn-modern .icon { background: linear-gradient(135deg, #ff375f, #bf5af2); }
+  .btn.active {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 20px 40px rgba(0,0,0,0.4);
   }
 
+  /* LOG */
   .log {
-    margin-top: 14px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
     font-size: 13px;
-    font-family: 'SF Mono', Menlo, monospace;
-    min-height: 20px;
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+    color: var(--text-dim);
     text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    background: rgba(0,0,0,0.3);
+    min-height: 18px;
   }
-  .log.error { color: #ff6b6b; }
-  .log.success { color: #00ff88; }
+  .log.success { color: var(--green); }
+  .log.error { color: var(--accent-3); }
 
-  .reminder {
-    margin-top: 16px;
-    padding: 14px;
-    border-radius: 10px;
-    background: rgba(255, 170, 0, 0.1);
-    border: 1px solid rgba(255, 170, 0, 0.3);
+  /* FOOTER HINT */
+  .hint {
+    padding: 18px 20px;
     font-size: 12px;
-    color: #ffaa00;
+    color: var(--text-dim);
     line-height: 1.5;
+    text-align: center;
+  }
+  .hint strong { color: var(--orange); }
+  .hint .kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* LINKS */
+  .links {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: center;
+  }
+  .link {
+    color: var(--text-dim);
+    font-size: 13px;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .link:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+  @media (max-width: 420px) {
+    .hero-mode { font-size: 50px; }
+    h1 { font-size: 30px; }
   }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>🎭 Einstein Admin</h1>
-  <div class="sub">Contrôle à distance du thème de l'app</div>
+<main>
+  <header>
+    <div class="brand">Les French Twins</div>
+    <h1>Einstein · Control</h1>
+    <div class="tagline">Remote theme switch</div>
+  </header>
 
-  <div class="hero classic" id="hero">
-    <div class="hero-label">Mode actif sur l'app</div>
-    <div class="hero-mode" id="heroMode">…</div>
+  <div class="hero glass classic" id="hero">
+    <div class="hero-label">Mode actif</div>
+    <div class="hero-mode" id="heroMode">—</div>
     <div class="hero-warn" id="heroWarn">Chargement…</div>
   </div>
 
   <div class="meta">
-    <span class="meta-row">📱 <strong id="phoneStatus">…</strong></span>
-    <span class="meta-row">🕐 dernière MAJ : <strong id="lastSwitch">—</strong></span>
+    <div class="glass meta-cell">
+      <div class="meta-label">Téléphone</div>
+      <div class="meta-value"><span class="dot off" id="phoneDot"></span><span id="phoneStatus">…</span></div>
+    </div>
+    <div class="glass meta-cell">
+      <div class="meta-label">Dernier switch</div>
+      <div class="meta-value" id="lastSwitch">—</div>
+    </div>
   </div>
 
-  <input type="password" id="pw" placeholder="Mot de passe admin" autocomplete="current-password" />
-
-  <button class="btn-classic" id="btnClassic" onclick="setTheme('classic')">
-    ✅ CLASSIC (safe pour review Apple)
-  </button>
-  <button class="btn-modern" id="btnModern" onclick="setTheme('modern')">
-    🎭 MODERN (Safari pixel-perfect, SHOW)
-  </button>
-
-  <div class="log" id="log">Entre ton mdp + clique sur le mode voulu</div>
-
-  <div class="reminder" id="reminder">
-    ⚠️ <strong>IMPORTANT</strong> : l'app ne se met à jour qu'<strong>au prochain lancement</strong> du téléphone. Force quit + relance après un switch.
+  <div class="glass pw-wrap">
+    <input type="password" class="pw-input" id="pw" placeholder="Mot de passe admin" autocomplete="current-password" />
   </div>
-</div>
+
+  <div class="actions">
+    <button class="btn btn-classic" id="btnClassic" onclick="setTheme('classic')">
+      <div class="left">
+        <div class="icon">🌐</div>
+        <div class="info">
+          <div class="title">Classic</div>
+          <div class="sub">Icône globe · safe pour review Apple</div>
+        </div>
+      </div>
+      <div class="chev">›</div>
+    </button>
+    <button class="btn btn-modern" id="btnModern" onclick="setTheme('modern')">
+      <div class="left">
+        <div class="icon">🎭</div>
+        <div class="info">
+          <div class="title">Modern</div>
+          <div class="sub">Icône Safari · UI pixel-perfect · SHOW</div>
+        </div>
+      </div>
+      <div class="chev">›</div>
+    </button>
+  </div>
+
+  <div class="log" id="log">Entrez votre mot de passe puis choisissez un mode</div>
+
+  <div class="glass hint">
+    <strong>⚠ Rappel</strong> — l'app ne bascule qu'<strong>au prochain lancement</strong>.<br>
+    Sur l'iPhone : glisse vers le haut, <span class="kbd">force quit</span>, relance.
+  </div>
+
+  <div class="links">
+    <a class="link" href="/mirror">🪞 Mirror</a>
+    <a class="link" href="/privacy">🔒 Privacy</a>
+    <a class="link" href="/config.json" target="_blank">📄 Config JSON</a>
+  </div>
+</main>
 
 <script>
-let lastSwitchTs = localStorage.getItem('lastSwitch') || null;
+let lastSwitchTs = localStorage.getItem('einstein_lastSwitch') || null;
 
 async function refresh() {
   try {
@@ -193,37 +417,38 @@ async function refresh() {
     ]);
     const mode = cfg.theme || 'classic';
     const hero = document.getElementById('hero');
-    hero.className = 'hero ' + mode;
+    hero.className = 'hero glass ' + mode;
     document.getElementById('heroMode').textContent = mode.toUpperCase();
 
     const warn = document.getElementById('heroWarn');
     if (mode === 'classic') {
-      warn.textContent = 'Icône GLOBE + UI browser simple. Safe pour review Apple.';
+      warn.innerHTML = '<span class="tag">SAFE</span>Icône globe · UI browser simple · review Apple OK';
     } else {
-      warn.textContent = 'Icône SAFARI + UI pixel-perfect Safari. Ne JAMAIS laisser ça pendant une review Apple !';
+      warn.innerHTML = '<span class="tag">SHOW</span>Icône Safari · UI pixel-perfect · ne jamais laisser en review Apple';
     }
 
-    document.getElementById('phoneStatus').textContent = ping.phoneConnected ? '🟢 connecté' : '⚫️ déconnecté';
+    const dot = document.getElementById('phoneDot');
+    dot.className = 'dot ' + (ping.phoneConnected ? 'on' : 'off');
+    document.getElementById('phoneStatus').textContent = ping.phoneConnected ? 'connecté' : 'hors ligne';
     document.getElementById('lastSwitch').textContent = lastSwitchTs || '—';
 
     document.getElementById('btnClassic').classList.toggle('active', mode === 'classic');
     document.getElementById('btnModern').classList.toggle('active', mode === 'modern');
-  } catch (e) { log('Erreur de refresh : ' + e.message, true); }
+  } catch (e) { log('Erreur refresh : ' + e.message, true); }
 }
 
 async function setTheme(theme) {
   const pw = document.getElementById('pw').value;
-  if (!pw) { log('Mot de passe requis', true); return; }
+  if (!pw) return log('Mot de passe requis', true);
 
-  // Confirm before switching to modern (danger zone)
-  if (theme === 'modern' && !confirm('⚠️ Activer MODERN ?\n\nL\'app va afficher l\'icône Safari + UI pixel-perfect. NE JAMAIS laisser ça pendant une review Apple.\n\nContinuer ?')) return;
+  if (theme === 'modern' && !confirm('⚠ Activer MODERN ?\n\nL\'app va afficher l\'icône Safari et l\'UI pixel-perfect.\n\nNE JAMAIS laisser ce mode pendant une review Apple — rejet instantané.\n\nContinuer ?')) return;
 
   try {
     const r = await fetch('/admin/set?password=' + encodeURIComponent(pw) + '&theme=' + theme, { method: 'POST' });
-    if (!r.ok) { log(r.status === 401 ? '❌ Mot de passe invalide' : '❌ Erreur ' + r.status, true); return; }
-    lastSwitchTs = new Date().toLocaleString('fr-FR');
-    localStorage.setItem('lastSwitch', lastSwitchTs);
-    log('✓ → ' + theme.toUpperCase());
+    if (!r.ok) return log(r.status === 401 ? '❌ Mot de passe incorrect' : '❌ HTTP ' + r.status, true);
+    lastSwitchTs = new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+    localStorage.setItem('einstein_lastSwitch', lastSwitchTs);
+    log('✓ switched → ' + theme.toUpperCase());
     refresh();
   } catch (e) { log('Erreur : ' + e.message, true); }
 }
@@ -231,11 +456,13 @@ async function setTheme(theme) {
 function log(msg, isError) {
   const el = document.getElementById('log');
   el.className = 'log ' + (isError ? 'error' : 'success');
-  el.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+  el.textContent = new Date().toLocaleTimeString() + ' · ' + msg;
+  if (!isError) setTimeout(() => { el.className = 'log'; el.textContent = 'Prêt'; }, 4000);
 }
 
 refresh();
 setInterval(refresh, 4000);
+document.getElementById('pw').focus();
 </script>
 
 </body>
