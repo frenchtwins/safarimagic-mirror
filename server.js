@@ -1,5 +1,5 @@
 /**
- * SafariMagic Mirror Server v2.0
+ * Einstein Mirror Server v2.0
  * Real-time screen mirroring for Les French Twins
  *
  * Features:
@@ -39,7 +39,7 @@ app.use((req, res, next) => {
 // In-memory config, persisted to disk so it survives container restarts.
 const fs = require('fs');
 const CONFIG_FILE = path.join(__dirname, 'config.json');
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'frenchtwins2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '159159';
 
 function loadConfig() {
     try {
@@ -317,7 +317,7 @@ app.get('/mirror', (req, res) => {
 server.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('🪄 ═══════════════════════════════════════════');
-    console.log('   SafariMagic Mirror v2.0 - Les French Twins');
+    console.log('   Einstein Mirror v2.0 - Les French Twins');
     console.log('═══════════════════════════════════════════════');
     console.log('');
     console.log(`   HTTP:      http://localhost:${PORT}`);
