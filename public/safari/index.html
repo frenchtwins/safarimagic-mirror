@@ -16,6 +16,7 @@
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased; touch-action:manipulation; }
   :root {
     --bg: #f2f2f7;
+    --bg-grouped: #f2f2f7;
     --card: #fff;
     --text: #000;
     --text-2: #8e8e93;
@@ -24,25 +25,31 @@
     --sep: rgba(60,60,67,0.1);
     --toolbar-bg: rgba(249,249,249,0.94);
     --url-bg: rgba(118,118,128,0.12);
+    --pill-bg: rgba(118,118,128,0.10);
+    --pill-active-bg: rgba(0,122,255,0.14);
+    --chip-bg: rgba(118,118,128,0.15);
     --shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #000;
+      --bg-grouped: #000;
       --card: #1c1c1e;
       --text: #fff;
       --text-2: #98989f;
       --text-3: #545458;
       --blue: #0a84ff;
-      --sep: rgba(255,255,255,0.15);
+      --sep: rgba(255,255,255,0.1);
       --toolbar-bg: rgba(18,18,18,0.92);
       --url-bg: rgba(118,118,128,0.24);
+      --pill-bg: rgba(118,118,128,0.20);
+      --pill-active-bg: rgba(10,132,255,0.22);
+      --chip-bg: rgba(118,118,128,0.24);
       --shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
   }
   html, body {
-    height: 100%;
-    width: 100%;
+    height:100%; width:100%;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
@@ -50,7 +57,8 @@
     -webkit-text-size-adjust: 100%;
     overscroll-behavior: none;
   }
-  body { display: flex; flex-direction: column; }
+  body { display:flex; flex-direction:column; }
+  ::-webkit-scrollbar { display:none; }
 
   .content {
     flex: 1;
@@ -60,136 +68,179 @@
     position: relative;
   }
 
-  /* ===== HOME ===== */
+  /* ========== HOME ========== */
   .home { padding: 20px 16px 140px; }
-  .home-header {
-    padding: 10px 0 16px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .home-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
-  .edit-btn {
-    color: var(--blue); font-size: 17px; background: none; border: none; font-family: inherit; cursor: pointer; padding: 4px 8px; margin-right: -8px;
-  }
+  .home-header { padding: 10px 0 16px; display:flex; justify-content:space-between; align-items:center; }
+  .home-title { font-size:17px; font-weight:700; letter-spacing:-0.01em; }
+  .edit-btn { color:var(--blue); font-size:17px; background:none; border:none; font-family:inherit; padding:4px 8px; margin-right:-8px; cursor:pointer; }
+  .favorites { display:grid; grid-template-columns:repeat(4, 1fr); gap: 20px 10px; padding:8px 0 12px; }
+  .fav { display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer; user-select:none; }
+  .fav-icon { width:62px; height:62px; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; box-shadow:var(--shadow); }
+  .fav-icon img { width:100%; height:100%; object-fit:cover; display:block; }
+  .fav-label { font-size:11px; font-weight:400; color:var(--text); text-align:center; line-height:1.18; max-width:76px; word-break:break-word; }
+  .privacy-card { background:var(--card); border-radius:10px; padding:12px 14px; display:flex; gap:12px; align-items:center; margin-top:24px; box-shadow:var(--shadow); }
+  .privacy-shield { width:24px; height:24px; color:var(--text-2); display:flex; align-items:center; justify-content:center; }
+  .privacy-shield svg { width:22px; height:22px; }
+  .privacy-body { flex:1; }
+  .privacy-title { font-size:13px; font-weight:600; color:var(--text); }
+  .privacy-sub { font-size:12px; color:var(--text-2); margin-top:1px; line-height:1.3; }
 
-  .favorites {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px 10px;
-    padding: 8px 0 12px;
+  /* ========== RESULTS (pixel-close to real Safari) ========== */
+  .results { display:none; padding: 0 0 140px; }
+  .results.active { display:block; }
+
+  /* Top search bar (inside results page) */
+  .results-top {
+    padding: 10px 16px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .fav { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
-  .fav-icon {
-    width: 62px; height: 62px;
-    border-radius: 14px;
-    overflow: hidden;
+  .results-pill {
+    flex: 1;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--url-bg);
+    border-radius: 100px;
+    padding: 0 12px;
+    height: 40px;
+  }
+  .results-pill-back {
+    width: 34px; height: 34px;
+    margin-left: -8px;
     display: flex; align-items: center; justify-content: center;
-    background: #fff;
-    box-shadow: var(--shadow);
+    color: var(--text-2);
   }
-  .fav-icon img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    border-radius: 14px;
-    display: block;
-  }
-  .fav-label {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--text);
-    text-align: center;
-    line-height: 1.18;
-    max-width: 76px;
-    word-break: break-word;
-  }
+  .results-pill-back svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap:round; stroke-linejoin:round; }
+  .results-pill-searchicon { color: var(--text-2); display:flex; }
+  .results-pill-searchicon svg { width: 15px; height: 15px; }
+  .results-pill-q { flex: 1; font-size: 16px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .results-pill-mic { color: var(--text-2); display: flex; padding: 4px; }
+  .results-pill-mic svg { width: 18px; height: 18px; }
 
-  .privacy-card {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex; gap: 12px; align-items: center;
-    margin-top: 24px;
-    box-shadow: var(--shadow);
-  }
-  .privacy-shield {
-    width: 24px; height: 24px;
-    color: var(--text-2); display: flex; align-items: center; justify-content: center;
-  }
-  .privacy-shield svg { width: 22px; height: 22px; }
-  .privacy-body { flex: 1; }
-  .privacy-title { font-size: 13px; font-weight: 600; color: var(--text); }
-  .privacy-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; line-height: 1.3; }
-
-  /* ===== RESULTS ===== */
-  .results { display: none; padding: 0 16px 140px; }
-  .results.active { display: block; }
-  .result-tabs {
-    display: flex; gap: 24px; padding: 12px 0 10px;
-    border-bottom: 0.5px solid var(--sep);
-    overflow-x: auto; white-space: nowrap;
+  /* Filter pills */
+  .filter-pills {
+    display: flex; gap: 8px;
+    padding: 6px 16px 12px;
+    overflow-x: auto;
+    white-space: nowrap;
     scrollbar-width: none;
   }
-  .result-tabs::-webkit-scrollbar { display: none; }
-  .result-tab {
-    font-size: 15px;
-    color: var(--text-2);
-    padding: 4px 0 6px;
-    font-weight: 400;
-    cursor: pointer;
-    position: relative;
-  }
-  .result-tab.active {
-    color: var(--text);
-    font-weight: 500;
-  }
-  .result-tab.active::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0; bottom: -10px;
-    height: 2px;
-    background: var(--text);
-    border-radius: 1px;
-  }
-  .results-count { font-size: 13px; color: var(--text-2); padding: 14px 0 0; }
-
-  .result-item { padding: 16px 0; border-bottom: 0.5px solid var(--sep); }
-  .result-site {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--text);
-    margin-bottom: 2px;
-  }
-  .result-favicon {
-    width: 18px; height: 18px; border-radius: 4px;
-    background: var(--url-bg);
-    display: flex; align-items: center; justify-content: center;
+  .filter-pills::-webkit-scrollbar { display: none; }
+  .pill {
     flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 100px;
+    background: transparent;
+    border: 1px solid var(--sep);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .pill.active {
+    background: var(--pill-active-bg);
+    border-color: transparent;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  /* Result blocks */
+  .result-block {
+    background: var(--card);
+    margin: 8px 0 0;
+    border-top: 0.5px solid var(--sep);
+    border-bottom: 0.5px solid var(--sep);
+  }
+  .result-item {
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--sep);
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .result-favicon { width:24px; height:24px; border-radius:100px; overflow:hidden; background:var(--url-bg); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .result-favicon img { width:100%; height:100%; object-fit:cover; }
+  .result-favicon.letter { font-size:12px; font-weight:700; color:var(--text-2); }
+  .result-meta { flex:1; min-width:0; }
+  .result-url { font-size:12px; color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .result-dots { color: var(--text-2); font-size: 18px; padding: 4px; }
+  .result-title { font-size:19px; color:var(--blue); font-weight:400; margin:2px 0 6px; line-height:1.25; letter-spacing:-0.01em; }
+  .result-snippet { font-size:14px; color:var(--text); line-height:1.4; opacity:0.85; }
+
+  /* Image carousel */
+  .result-images {
+    display: flex;
+    gap: 4px;
+    margin: 10px -16px 10px;
+    padding: 0 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .result-images::-webkit-scrollbar { display: none; }
+  .result-image-tile {
+    flex-shrink: 0;
+    width: 44%;
+    aspect-ratio: 4/3;
+    border-radius: 8px;
     overflow: hidden;
+    background: var(--url-bg);
+    scroll-snap-align: start;
   }
-  .result-favicon img { width: 100%; height: 100%; object-fit: cover; }
-  .result-title {
-    font-size: 17px; color: var(--blue);
-    font-weight: 400;
-    margin: 4px 0 2px;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
+  .result-image-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Section blocks (Albums, Vidéos, etc.) */
+  .section-block {
+    background: var(--card);
+    margin-top: 8px;
+    border-top: 0.5px solid var(--sep);
+    border-bottom: 0.5px solid var(--sep);
   }
-  .result-snippet {
-    font-size: 14px; color: var(--text-2);
-    line-height: 1.35;
+  .section-header {
+    display: flex; align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .section-title-wrap { flex: 1; min-width: 0; }
+  .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+  .section-sub { font-size: 14px; color: var(--text-2); margin-top: 2px; }
+  .section-chev { color: var(--text-2); }
+  .section-chev svg { width: 18px; height: 18px; transition: transform 0.2s; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap:round; stroke-linejoin:round; }
+  .section-block.open .section-chev svg { transform: rotate(180deg); }
+  .section-body { display: none; padding: 0 16px 16px; }
+  .section-block.open .section-body { display: block; }
+
+  /* Related searches chips */
+  .related-block { padding: 20px 16px 16px; }
+  .related-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .related-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .related-chip {
+    padding: 8px 14px;
+    background: var(--chip-bg);
+    color: var(--text);
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
   }
 
-  /* ===== WEBVIEW ===== */
-  .webview { display: none; width: 100%; height: 100%; position: absolute; inset: 0; background: var(--card); }
-  .webview.active { display: block; }
-  .webview iframe { width: 100%; height: 100%; border: none; background: var(--card); }
+  /* Loading */
+  .loading { padding: 30px 16px; text-align: center; color: var(--text-2); font-size: 14px; }
 
-  /* ===== BOTTOM BAR ===== */
+  /* ========== WEBVIEW ========== */
+  .webview { display:none; width:100%; height:100%; position:absolute; inset:0; background:var(--card); }
+  .webview.active { display:block; }
+  .webview iframe { width:100%; height:100%; border:none; background:var(--card); }
+
+  /* ========== BOTTOM BAR ========== */
   .bottom {
     padding-bottom: env(safe-area-inset-bottom, 8px);
     background: var(--toolbar-bg);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-top: 0.5px solid var(--sep);
-    position: relative; z-index: 10;
+    position: relative;
+    z-index: 10;
   }
   .url-bar-wrap { padding: 8px 16px 4px; }
   .url-bar {
@@ -201,156 +252,132 @@
     height: 40px;
   }
   .url-bar-left { color: var(--text-2); display: flex; align-items: center; flex-shrink: 0; }
-  .url-bar-aA {
-    font-family: -apple-system, 'SF Pro Text', sans-serif;
-    letter-spacing: -0.5px;
-    font-weight: 400;
-    font-size: 15px;
-    color: var(--text-2);
-  }
+  .url-bar-aA { font-weight: 400; color: var(--text-2); display: flex; align-items: baseline; }
   .url-bar-aA .small { font-size: 11px; }
-  .url-bar-aA .big { font-size: 16px; }
-  .url-bar-lock svg { width: 14px; height: 14px; margin-right: 2px; }
-  .url-bar-text {
-    flex: 1;
-    font-size: 16px;
-    color: var(--text-2);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    text-align: center;
-    font-weight: 400;
-  }
+  .url-bar-aA .big { font-size: 15px; margin-left: -1px; }
+  .url-bar-lock svg { width: 13px; height: 13px; }
+  .url-bar-text { flex:1; font-size:16px; color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; font-weight:400; }
   .url-bar-text.placeholder { color: var(--text-2); }
-  .url-bar-text.active { color: var(--text); text-align: center; }
-  .url-bar-right { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
-  .url-bar-btn {
-    color: var(--text-2); padding: 6px;
-    display: flex; align-items: center; justify-content: center;
-    background: none; border: none; cursor: pointer;
-  }
-  .url-bar-btn svg { width: 18px; height: 18px; }
-  .url-bar-btn.reload { color: var(--text-2); }
-  .url-bar-btn.reload svg { width: 16px; height: 16px; }
+  .url-bar-text.active { color: var(--text); text-align:center; }
+  .url-bar-right { display: flex; align-items: center; flex-shrink: 0; }
+  .url-bar-btn { color: var(--text-2); padding: 6px; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; }
+  .url-bar-btn svg { width: 17px; height: 17px; }
 
-  .toolbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 18px 2px;
-    height: 48px;
-  }
-  .tool {
-    color: var(--blue); cursor: pointer;
-    width: 44px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
-    background: none; border: none; font-family: inherit;
-    transition: opacity 0.15s;
-  }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 18px 2px; height: 48px; }
+  .tool { color: var(--blue); cursor: pointer; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: none; border: none; font-family: inherit; transition: opacity 0.15s; }
   .tool:active { opacity: 0.5; }
   .tool.disabled { color: var(--text-3); pointer-events: none; }
   .tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .tool.chev svg { stroke-width: 2.5; }
+  .tool-tabs-count {
+    position: absolute; font-size: 9px; font-weight: 700;
+    color: var(--blue); pointer-events: none;
+    letter-spacing: -0.5px;
+  }
 
-  /* ===== SEARCH OVERLAY ===== */
-  .search-overlay {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    z-index: 100;
-    display: none;
-    flex-direction: column;
-  }
-  .search-overlay.active { display: flex; }
-  .search-top {
-    display: flex; gap: 10px; align-items: center;
-    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
-    padding-left: 12px; padding-right: 12px; padding-bottom: 10px;
-  }
-  .search-input {
-    flex: 1;
-    background: var(--url-bg);
-    border: none; border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 17px;
-    font-family: inherit;
-    color: var(--text);
-    outline: none;
-    height: 40px;
-  }
-  .search-cancel {
-    color: var(--blue); font-size: 17px; background: none; border: none;
-    font-family: inherit; padding: 8px 4px; cursor: pointer;
-  }
-  .search-suggestions { flex: 1; overflow-y: auto; padding: 4px 0; }
-  .sug {
-    display: flex; align-items: center; gap: 14px;
-    padding: 13px 16px;
-    font-size: 15px; color: var(--text);
-    border-bottom: 0.5px solid var(--sep);
-    cursor: pointer;
-  }
-  .sug-icon {
-    width: 18px; height: 18px; color: var(--text-2);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
-  .sug-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
-  .sug-text { flex: 1; }
-  .sug .arrow {
-    width: 20px; height: 20px;
-    color: var(--text-3);
-    transform: rotate(-45deg);
-  }
-  .sug .arrow svg { width: 100%; height: 100%; }
+  /* ========== SEARCH OVERLAY ========== */
+  .search-overlay { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; }
+  .search-overlay.active { display:flex; }
+  .search-top { display:flex; gap:10px; align-items:center; padding-top:calc(env(safe-area-inset-top, 0px) + 12px); padding-left:12px; padding-right:12px; padding-bottom:10px; }
+  .search-input { flex:1; background:var(--url-bg); border:none; border-radius:12px; padding:10px 14px; font-size:17px; font-family:inherit; color:var(--text); outline:none; height:40px; }
+  .search-cancel { color:var(--blue); font-size:17px; background:none; border:none; font-family:inherit; padding:8px 4px; cursor:pointer; }
+  .search-suggestions { flex:1; overflow-y:auto; padding:4px 0; }
+  .sug { display:flex; align-items:center; gap:14px; padding:13px 16px; font-size:15px; color:var(--text); border-bottom:0.5px solid var(--sep); cursor:pointer; }
+  .sug-icon { width:18px; height:18px; color:var(--text-2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sug-icon svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; }
+  .sug-text { flex:1; }
+  .sug .arrow { width:20px; height:20px; color:var(--text-3); transform:rotate(-45deg); }
+  .sug .arrow svg { width:100%; height:100%; }
 
-  /* ===== TABS OVERLAY ===== */
-  .tabs-overlay {
-    position: fixed; inset: 0;
-    background: #000;
-    z-index: 99;
-    display: none;
-    flex-direction: column;
-    padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px);
+  /* ========== TABS OVERLAY ========== */
+  .tabs-overlay { position:fixed; inset:0; background:#000; z-index:99; display:none; flex-direction:column; padding: env(safe-area-inset-top, 20px) 14px env(safe-area-inset-bottom, 20px); color:#fff; }
+  .tabs-overlay.active { display:flex; }
+  .tabs-top-bar { display:flex; align-items:center; justify-content:space-between; padding: 10px 0; }
+  .tabs-more { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; font-size:17px; color:#fff; cursor:pointer; }
+  .tabs-search { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; }
+  .tabs-search svg { width:16px; height:16px; stroke:currentColor; stroke-width:2.2; fill:none; }
+  .tabs-grid { flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; padding: 4px 2px 80px; align-content: start; }
+  .tab-card { background:#2c2c2e; border-radius:14px; overflow:hidden; aspect-ratio: 3/4.2; cursor:pointer; display:flex; flex-direction:column; position:relative; }
+  .tab-card.active { outline: 3px solid var(--blue); outline-offset: -3px; }
+  .tab-card-body { flex:1; background:#1c1c1e; display:flex; align-items:center; justify-content:center; color:#98989f; font-size:13px; padding:12px; text-align:center; }
+  .tab-card-body.has-preview img { width:100%; height:100%; object-fit:cover; object-position:top; }
+  .tab-card-footer { display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(0,0,0,0.4); }
+  .tab-card-favicon { width:16px; height:16px; border-radius:3px; overflow:hidden; flex-shrink:0; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; }
+  .tab-card-favicon img { width:100%; height:100%; object-fit:cover; }
+  .tab-card-title { font-size:12px; color:#fff; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tab-card-close { width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; flex-shrink:0; cursor:pointer; }
+  .tabs-bottom { position:absolute; left:14px; right:14px; bottom: env(safe-area-inset-bottom, 14px); padding: 14px 0; display:flex; align-items:center; justify-content:space-between; background: rgba(0,0,0,0.88); backdrop-filter:blur(20px); }
+  .tabs-bottom-left, .tabs-bottom-right { display:flex; align-items:center; gap:10px; }
+  .tabs-newbtn { width:48px; height:48px; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:300; color:#fff; background:none; border:none; cursor:pointer; }
+  .tabs-count-pill { background:rgba(255,255,255,0.16); padding: 8px 16px; border-radius: 100px; font-size: 15px; font-weight: 500; color: #fff; }
+  .tabs-done { width:48px; height:48px; border-radius:50%; background:var(--blue); display:flex; align-items:center; justify-content:center; color:#fff; border:none; font-size: 17px; font-weight: 600; cursor:pointer; }
+  .tabs-done svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .tabs-private-toggle {
+    display:flex; align-items:center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: 100px;
+    background: transparent;
     color: #fff;
+    font-size: 15px; font-weight: 500;
+    border: none; cursor: pointer;
   }
-  .tabs-overlay.active { display: flex; }
-  .tabs-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 4px 0; }
-  .tabs-count { font-size: 14px; color: #8e8e93; }
-  .tabs-done { color: var(--blue); font-size: 17px; background: none; border: none; font-family: inherit; font-weight: 600; cursor: pointer; padding: 8px; }
-  .tabs-grid {
-    flex: 1; overflow-y: auto;
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
-    padding: 16px 4px;
-  }
-  .tab-card {
-    background: #2c2c2e;
-    border-radius: 14px;
-    aspect-ratio: 3/4;
-    display: flex; flex-direction: column;
-    cursor: pointer;
-    overflow: hidden;
-    position: relative;
-  }
-  .tab-card.active { outline: 4px solid var(--blue); outline-offset: -4px; }
-  .tab-card-header {
-    padding: 10px 12px; display: flex; align-items: center; gap: 8px;
-    background: rgba(0,0,0,0.3);
-  }
-  .tab-card-favicon { width: 16px; height: 16px; border-radius: 3px; overflow: hidden; flex-shrink: 0; }
-  .tab-card-favicon img { width: 100%; height: 100%; object-fit: cover; }
-  .tab-card-title { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tab-card-close { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; color: #8e8e93; }
-  .tab-card-body {
-    flex: 1; padding: 12px; font-size: 13px; color: #98989f;
-    background: #1c1c1e;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-  }
-  .tabs-bottom {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 20px;
-  }
-  .tabs-bottom-btn {
-    color: var(--blue); background: none; border: none; font-family: inherit;
-    font-size: 17px; cursor: pointer; padding: 8px;
-  }
-  .tabs-bottom-btn.plus { font-size: 28px; font-weight: 200; }
 
-  ::-webkit-scrollbar { display: none; }
+  /* ========== HISTORY / BOOKMARKS SHEET ========== */
+  .sheet-bg { position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:200; display:none; }
+  .sheet-bg.active { display:block; }
+  .sheet {
+    position:fixed; left:8px; right:8px; bottom:8px; top: env(safe-area-inset-top, 20px);
+    background: var(--card);
+    border-radius: 16px;
+    z-index: 201;
+    display:none; flex-direction:column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .sheet.active { display:flex; }
+  .sheet-top { display:flex; align-items:center; justify-content:flex-end; gap:10px; padding: 16px 16px 8px; }
+  .sheet-more, .sheet-close { width:30px; height:30px; border-radius:50%; background:rgba(118,118,128,0.15); display:flex; align-items:center; justify-content:center; color:var(--text-2); cursor:pointer; font-size:15px; font-weight:700; }
+  .sheet-close svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .sheet-scroll { flex:1; overflow-y:auto; padding: 0 16px 20px; }
+
+  .sheet-section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; padding: 8px 0 14px; display: flex; align-items: center; gap: 6px; }
+  .sheet-section-title svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+
+  .recent-card {
+    background: rgba(118,118,128,0.12);
+    border-radius: 14px;
+    padding: 12px;
+    width: 180px;
+    cursor: pointer;
+  }
+  .recent-card-fav { width:60px; height:60px; border-radius:14px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:var(--shadow); margin-bottom: 12px; }
+  .recent-card-fav img { width: 100%; height: 100%; object-fit: cover; }
+  .recent-card-q { display:flex; align-items:center; gap:6px; font-size:14px; font-weight:500; margin-bottom:2px; }
+  .recent-card-q svg { width: 13px; height: 13px; color: var(--text-2); }
+  .recent-card-host { font-size:12px; color:var(--text-2); margin-bottom: 10px; }
+  .recent-card-tag { background: rgba(118,118,128,0.2); color: var(--text-2); font-size: 11px; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* Segmented control */
+  .segmented { display:flex; background: var(--chip-bg); border-radius: 10px; padding: 2px; margin: 20px 0 16px; }
+  .segment { flex:1; padding: 7px 0; display:flex; align-items:center; justify-content:center; cursor: pointer; border-radius: 8px; transition: background 0.15s; color: var(--text-2); }
+  .segment.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .segment svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+
+  .hist-group-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; padding: 10px 0; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .hist-group-title svg { width: 14px; height: 14px; color: var(--blue); }
+  .hist-list { border-radius: 12px; background: rgba(118,118,128,0.08); overflow: hidden; margin-bottom: 4px; }
+  .hist-item { padding: 12px 14px; border-bottom: 0.5px solid var(--sep); cursor: pointer; display: flex; gap: 12px; align-items: center; }
+  .hist-item:last-child { border-bottom: none; }
+  .hist-favicon { width: 22px; height: 22px; border-radius: 5px; background: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+  .hist-favicon svg { width: 14px; height: 14px; color: #fff; stroke: currentColor; fill: none; stroke-width: 2; }
+  .hist-favicon img { width: 100%; height: 100%; object-fit: cover; }
+  .hist-body { flex: 1; min-width: 0; }
+  .hist-title { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-url { font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+
+  .empty-state { padding: 80px 20px; text-align: center; color: var(--text-2); }
+  .empty-state-icon { font-size: 48px; color: var(--text-3); margin-bottom: 16px; }
+  .empty-state-text { font-size: 15px; }
 </style>
 </head>
 <body>
@@ -364,7 +391,6 @@
       <button class="edit-btn">Modifier</button>
     </div>
     <div class="favorites" id="favorites"></div>
-
     <div class="privacy-card">
       <div class="privacy-shield">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l7 3v6c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V5l7-3z"/></svg>
@@ -378,17 +404,25 @@
 
   <!-- RESULTS -->
   <div class="results" id="results">
-    <div class="result-tabs" id="resultTabs">
-      <div class="result-tab active">Tous</div>
-      <div class="result-tab">Images</div>
-      <div class="result-tab">Vidéos</div>
-      <div class="result-tab">Actualités</div>
-      <div class="result-tab">Achats</div>
-      <div class="result-tab">Lieux</div>
-      <div class="result-tab">Livres</div>
+    <div class="results-top">
+      <div class="results-pill-back" onclick="goBack()">
+        <svg viewBox="0 0 24 24"><polyline points="15 6 9 12 15 18"/></svg>
+      </div>
+      <div class="results-pill" onclick="openSearch()">
+        <span class="results-pill-searchicon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>
+        </span>
+        <span class="results-pill-q" id="resultsPillQ"></span>
+        <span class="results-pill-mic">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14a3 3 0 003-3V6a3 3 0 00-6 0v5a3 3 0 003 3z"/>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 11a7 7 0 0014 0M12 18v3"/>
+          </svg>
+        </span>
+      </div>
     </div>
-    <div class="results-count" id="resultsCount"></div>
-    <div id="resultsList"></div>
+    <div class="filter-pills" id="filterPills"></div>
+    <div id="resultsContent"></div>
   </div>
 
   <!-- WEBVIEW -->
@@ -403,17 +437,14 @@
   <div class="url-bar-wrap">
     <div class="url-bar" id="urlBar" onclick="openSearch()">
       <div class="url-bar-left" id="urlBarLeft">
-        <!-- aA icon by default; lock on page -->
         <span class="url-bar-aA"><span class="small">a</span><span class="big">A</span></span>
       </div>
       <div class="url-bar-text placeholder" id="urlBarText">Rechercher ou saisir un site</div>
       <div class="url-bar-right">
-        <button class="url-bar-btn reload" id="urlBarReload" style="display:none;" onclick="event.stopPropagation(); reload();" aria-label="Recharger">
+        <button class="url-bar-btn" id="urlBarReload" style="display:none;" onclick="event.stopPropagation(); reload();" aria-label="Recharger">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 0115.5-6.3L21 8"/>
-            <path d="M21 3v5h-5"/>
-            <path d="M21 12a9 9 0 01-15.5 6.3L3 16"/>
-            <path d="M3 21v-5h5"/>
+            <path d="M3 12a9 9 0 0115.5-6.3L21 8"/><path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 01-15.5 6.3L3 16"/><path d="M3 21v-5h5"/>
           </svg>
         </button>
         <button class="url-bar-btn" onclick="event.stopPropagation();" aria-label="Micro">
@@ -426,20 +457,13 @@
     </div>
   </div>
   <div class="toolbar">
-    <button class="tool chev" id="backBtn" onclick="goBack()" aria-label="Précédent">
-      <svg viewBox="0 0 24 24"><polyline points="15 6 9 12 15 18"/></svg>
-    </button>
-    <button class="tool chev disabled" id="fwdBtn" onclick="goForward()" aria-label="Suivant">
-      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
-    </button>
-    <button class="tool" onclick="doShare()" aria-label="Partager">
-      <svg viewBox="0 0 24 24"><path d="M12 3v13"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg>
-    </button>
-    <button class="tool" onclick="doBookmarks()" aria-label="Signets">
-      <svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h14v16H6a2 2 0 01-2-2V6z"/><path d="M20 18H6a2 2 0 000 4h14"/></svg>
-    </button>
-    <button class="tool" onclick="openTabs()" aria-label="Onglets">
+    <button class="tool chev" id="backBtn" onclick="goBack()"><svg viewBox="0 0 24 24"><polyline points="15 6 9 12 15 18"/></svg></button>
+    <button class="tool chev disabled" id="fwdBtn" onclick="goForward()"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+    <button class="tool" onclick="doShare()"><svg viewBox="0 0 24 24"><path d="M12 3v13"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg></button>
+    <button class="tool" onclick="openSheet()"><svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h14v16H6a2 2 0 01-2-2V6z"/><path d="M20 18H6a2 2 0 000 4h14"/></svg></button>
+    <button class="tool" onclick="openTabs()" style="position:relative;">
       <svg viewBox="0 0 24 24"><rect x="4" y="4" width="12" height="12" rx="2"/><rect x="8" y="8" width="12" height="12" rx="2"/></svg>
+      <span class="tool-tabs-count" id="tabsCountToolbar" style="display:none;"></span>
     </button>
   </div>
 </div>
@@ -455,24 +479,37 @@
 
 <!-- TABS OVERLAY -->
 <div class="tabs-overlay" id="tabsOverlay">
-  <div class="tabs-top">
-    <div class="tabs-count" id="tabsCount">1 onglet</div>
-    <button class="tabs-done" onclick="closeTabs()">OK</button>
+  <div class="tabs-top-bar">
+    <div class="tabs-more" onclick="closeTabs()">⋯</div>
+    <div class="tabs-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>
+    </div>
   </div>
   <div class="tabs-grid" id="tabsGrid"></div>
   <div class="tabs-bottom">
-    <button class="tabs-bottom-btn">Privée</button>
-    <button class="tabs-bottom-btn plus" onclick="newTab()">+</button>
-    <button class="tabs-bottom-btn" onclick="closeTabs()">OK</button>
+    <button class="tabs-newbtn" onclick="newTab()">+</button>
+    <button class="tabs-private-toggle" onclick="togglePrivate()">Privée</button>
+    <div class="tabs-count-pill" id="tabsCountPill">1 onglet</div>
+    <div style="flex:1;"></div>
+    <button class="tabs-done" onclick="closeTabs()">
+      <svg viewBox="0 0 24 24"><polyline points="5 12 10 17 20 7"/></svg>
+    </button>
   </div>
 </div>
 
-<script>
-/* ====================================================================
- * EINSTEIN WEB — Safari clone (pixel-closer). Streams all events to mirror.
- * ==================================================================== */
+<!-- HISTORY / BOOKMARKS SHEET -->
+<div class="sheet-bg" id="sheetBg" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-top">
+    <div class="sheet-more">⋯</div>
+    <div class="sheet-close" onclick="closeSheet()"><svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></div>
+  </div>
+  <div class="sheet-scroll" id="sheetScroll"></div>
+</div>
 
-// ===== Favorites with REAL favicons (fetched from DuckDuckGo CDN) =====
+<script>
+/* ===== Einstein Safari Clone — persistent state + pixel-close rendering ===== */
+
 const FAVORITES = [
   { name:'Dropbox',            url:'https://www.dropbox.com',        host:'dropbox.com' },
   { name:'YouTube',             url:'https://m.youtube.com',          host:'youtube.com' },
@@ -487,19 +524,26 @@ const FAVORITES = [
   { name:'Instagram',           url:'https://www.instagram.com',      host:'instagram.com' },
   { name:'Wikipedia',           url:'https://fr.wikipedia.org',       host:'wikipedia.org' },
 ];
-
 const faviconUrl = (host) => `https://icons.duckduckgo.com/ip3/${host}.ico`;
 
-// Session / state
+// ===== State =====
 let ws = null;
-let currentPage = { type:'home', url:'', title:'' };
-let history = [];
-let tabs = [{ title:'Favoris', host:'', type:'home' }];
+let currentPage = { type:'home', url:'', title:'Favoris' };
+let tabs = [{ id: tabId(), page: { type:'home', url:'', title:'Favoris' }, private: false, preview: null }];
+let activeTabIndex = 0;
+let privateMode = false;
+let historyItems = JSON.parse(localStorage.getItem('einstein_history') || '[]');
+let bookmarks = JSON.parse(localStorage.getItem('einstein_bookmarks') || '[]');
+let readingList = JSON.parse(localStorage.getItem('einstein_readinglist') || '[]');
+let recentlySaved = JSON.parse(localStorage.getItem('einstein_recently_saved') || '[]');
 let sessionId = localStorage.getItem('einstein_session') || (Math.random().toString(36).slice(2)+Date.now().toString(36));
 localStorage.setItem('einstein_session', sessionId);
 let typingBuffer = '';
 
-// ===== WebSocket with persistence =====
+function tabId() { return 't_' + Math.random().toString(36).slice(2, 10); }
+function activeTab() { return tabs[activeTabIndex]; }
+
+// ===== WebSocket =====
 function connectWS() {
   const url = (location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws';
   ws = new WebSocket(url);
@@ -511,169 +555,242 @@ function connectWS() {
   ws.onclose = () => setTimeout(connectWS, 1500);
   ws.onerror = () => { try { ws.close(); } catch(e) {} };
 }
-function send(event) {
-  const payload = Object.assign({ timestamp: new Date().toISOString() }, event);
+function send(ev) {
+  const payload = Object.assign({ timestamp: new Date().toISOString() }, ev);
   try { if (ws && ws.readyState === 1) ws.send(JSON.stringify(payload)); } catch(e) {}
 }
 function resyncState() {
-  if (currentPage.type === 'home') {
-    send({ type:'navigation', url:'https://start', title:'Favoris' });
-  } else if (currentPage.type === 'results') {
-    send({ type:'search', query: currentPage.query, url: currentPage.url });
-    send({ type:'page_loaded', url: currentPage.url, title: currentPage.title });
-  } else if (currentPage.type === 'webview') {
-    send({ type:'navigation', url: currentPage.url, title: currentPage.title });
-    send({ type:'page_loaded', url: currentPage.url, title: currentPage.title });
-  }
+  const p = currentPage;
+  if (p.type === 'home') send({ type:'navigation', url:'https://start', title:'Favoris' });
+  else if (p.type === 'results') { send({ type:'search', query: p.query, url: p.url }); send({ type:'page_loaded', url: p.url, title: p.title }); }
+  else if (p.type === 'webview') { send({ type:'navigation', url: p.url, title: p.title }); send({ type:'page_loaded', url: p.url, title: p.title }); }
   if (typingBuffer) send({ type:'keystroke', character:'', currentText: typingBuffer, source:'resync' });
 }
 
-// ===== Render favorites with real favicons =====
+// ===== HOME =====
 function renderFavorites() {
   const grid = document.getElementById('favorites');
   grid.innerHTML = FAVORITES.map((f, i) => `
     <div class="fav" data-i="${i}">
       <div class="fav-icon">
-        <img src="${faviconUrl(f.host)}" alt="${escapeAttr(f.name)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.textContent='${escapeAttr(f.name.charAt(0))}'; this.parentElement.style.fontSize='24px'; this.parentElement.style.fontWeight='700'; this.parentElement.style.color='#8e8e93';" />
+        <img src="${faviconUrl(f.host)}" alt="${esc(f.name)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.style.background='#8e8e93'; this.parentElement.textContent='${esc(f.name.charAt(0))}'; this.parentElement.style.color='#fff'; this.parentElement.style.fontSize='24px'; this.parentElement.style.fontWeight='700';" />
       </div>
-      <div class="fav-label">${escapeHtml(f.name)}</div>
+      <div class="fav-label">${esc(f.name)}</div>
     </div>
   `).join('');
-  grid.querySelectorAll('.fav').forEach(el => {
-    el.addEventListener('click', () => {
-      const f = FAVORITES[+el.dataset.i];
-      send({ type:'link_click', linkText:f.name, href:f.url });
-      openURL(f.url, f.name);
-    });
-  });
+  grid.querySelectorAll('.fav').forEach(el => el.addEventListener('click', () => {
+    const f = FAVORITES[+el.dataset.i];
+    send({ type:'link_click', linkText: f.name, href: f.url });
+    openURL(f.url, f.name, f.host);
+  }));
 }
 
-// ===== Search overlay =====
+// ===== SEARCH OVERLAY =====
 function openSearch() {
   document.getElementById('searchOverlay').classList.add('active');
   const input = document.getElementById('searchInput');
-  input.value = '';
-  input.focus();
+  input.value = ''; input.focus();
   typingBuffer = '';
   renderSuggestions('');
-  send({ type:'app_state', state:'active', note:'search_opened' });
+  send({ type:'app_state', note:'search_opened' });
 }
 function closeSearch() {
   document.getElementById('searchOverlay').classList.remove('active');
   typingBuffer = '';
-  send({ type:'app_state', state:'active', note:'search_closed' });
+  send({ type:'app_state', note:'search_closed' });
 }
-function renderSuggestions(query) {
+async function renderSuggestions(query) {
   const wrap = document.getElementById('suggestions');
   if (!query) { wrap.innerHTML = ''; return; }
-  const suggestions = [
-    { icon:'search', text: query + ' — Recherche' },
-    { icon:'search', text: query + ' en ligne' },
-    { icon:'search', text: query + ' wikipedia' },
-    { icon:'search', text: query + ' youtube' },
-    { icon:'search', text: query + ' définition' },
-  ];
+  // Try Google suggest, fallback to stub
+  let items = [];
+  try {
+    const r = await fetch('/api/suggest?q=' + encodeURIComponent(query)).then(r => r.json());
+    items = (r.suggestions || []).slice(0, 8);
+  } catch (e) {}
+  if (!items.length) items = [query + ' — Recherche', query + ' en ligne', query + ' wikipedia'];
+
   const searchSvg = `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>`;
   const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>`;
-  wrap.innerHTML = suggestions.map(s =>
-    `<div class="sug" data-q="${escapeAttr(s.text.replace(/ — Recherche$/,''))}">
+  wrap.innerHTML = items.map(t =>
+    `<div class="sug" data-q="${escA(t)}">
        <div class="sug-icon">${searchSvg}</div>
-       <div class="sug-text">${escapeHtml(s.text)}</div>
+       <div class="sug-text">${esc(t)}</div>
        <div class="arrow">${arrowSvg}</div>
      </div>`
   ).join('');
-  wrap.querySelectorAll('.sug').forEach(el => {
-    el.addEventListener('click', () => doSearch(el.dataset.q));
-  });
+  wrap.querySelectorAll('.sug').forEach(el => el.addEventListener('click', () => doSearch(el.dataset.q)));
 }
 
-// Track keystrokes in search input
 const searchInput = document.getElementById('searchInput');
 searchInput.addEventListener('input', (e) => {
-  const newVal = e.target.value;
-  if (newVal.length > typingBuffer.length) {
-    const chars = newVal.slice(typingBuffer.length);
-    for (let i = 0; i < chars.length; i++) {
-      send({ type:'keystroke', character: chars[i], currentText: newVal.slice(0, typingBuffer.length + i + 1) });
-    }
-  } else if (newVal.length < typingBuffer.length) {
-    for (let j = 0; j < typingBuffer.length - newVal.length; j++) {
-      send({ type:'keystroke', character: '⌫', currentText: newVal });
-    }
+  const v = e.target.value;
+  if (v.length > typingBuffer.length) {
+    const chars = v.slice(typingBuffer.length);
+    for (let i = 0; i < chars.length; i++) send({ type:'keystroke', character: chars[i], currentText: v.slice(0, typingBuffer.length + i + 1) });
+  } else if (v.length < typingBuffer.length) {
+    for (let j = 0; j < typingBuffer.length - v.length; j++) send({ type:'keystroke', character: '⌫', currentText: v });
   }
-  typingBuffer = newVal;
-  renderSuggestions(newVal);
+  typingBuffer = v;
+  renderSuggestions(v);
 });
-searchInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); doSearch(e.target.value); }
-});
+searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch(e.target.value); } });
 
-// ===== Search =====
+// ===== RESULTS =====
+const FILTER_PILLS = ['Aperçu','Images','Vidéos','Actualités','Achats','Lieux','Livres','Finance'];
+
 async function doSearch(query) {
   if (!query || !query.trim()) return;
   typingBuffer = '';
   closeSearch();
   send({ type:'search', query, url:'https://www.google.com/search?q='+encodeURIComponent(query) });
+  pushHistory({ title: query + ' — Recherche Google', url: 'https://www.google.com/search?q='+encodeURIComponent(query), host: 'google.com', type:'search' });
   showResults(query);
 }
 
 async function showResults(query) {
-  history.push(currentPage);
-  currentPage = { type:'results', url:'https://www.google.com/search?q='+encodeURIComponent(query), title: query + ' — Recherche Google', query };
-  tabs[0] = { title: currentPage.title, host:'google.com', type:'results' };
+  const p = { type:'results', url:'https://www.google.com/search?q='+encodeURIComponent(query), title: query + ' — Recherche Google', query };
+  activeTab().page = p;
+  currentPage = p;
   updateBackBtn();
-  document.getElementById('home').style.display='none';
-  document.getElementById('results').classList.add('active');
-  document.getElementById('webview').classList.remove('active');
-  updateUrlBar('google.com', true);
+  show('results');
   document.getElementById('content').scrollTop = 0;
+  document.getElementById('resultsPillQ').textContent = query;
+  updateUrlBar('google.com', true);
 
-  const list = document.getElementById('resultsList');
-  const count = document.getElementById('resultsCount');
-  count.textContent = 'Chargement…';
-  list.innerHTML = '';
+  // Filter pills
+  const pillsEl = document.getElementById('filterPills');
+  pillsEl.innerHTML = FILTER_PILLS.map((p, i) => `<div class="pill ${i===0?'active':''}" data-filter="${esc(p)}">${esc(p)}</div>`).join('');
+  pillsEl.querySelectorAll('.pill').forEach(el => el.addEventListener('click', () => {
+    pillsEl.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    send({ type:'link_click', linkText: 'Filtre: ' + el.dataset.filter, href: 'filter://' + el.dataset.filter });
+  }));
 
-  try {
-    const res = await fetch('/api/search?q=' + encodeURIComponent(query)).then(r => r.json());
-    const items = (res && res.results) || [];
-    count.textContent = 'Environ ' + (res.total || items.length) + ' résultats';
-    list.innerHTML = items.map((r, i) => `
-      <div class="result-item" data-i="${i}">
-        <div class="result-site">
-          <div class="result-favicon">
-            <img src="${faviconUrl(r.host||'')}" alt="" onerror="this.style.display='none'; this.parentElement.textContent='${(r.host||'').charAt(0).toUpperCase()}'; this.parentElement.style.fontSize='10px'; this.parentElement.style.fontWeight='700'; this.parentElement.style.color='var(--text-2)';" />
-          </div>
-          <span>${escapeHtml(r.host || '')}</span>
+  // Loading
+  const content = document.getElementById('resultsContent');
+  content.innerHTML = '<div class="loading">Chargement des résultats…</div>';
+
+  // Fetch text + images + related in parallel
+  const [res, imgs, rel] = await Promise.all([
+    fetch('/api/search?q=' + encodeURIComponent(query)).then(r => r.json()).catch(() => ({ results: [] })),
+    fetch('/api/images?q=' + encodeURIComponent(query)).then(r => r.json()).catch(() => ({ images: [] })),
+    fetch('/api/related?q=' + encodeURIComponent(query)).then(r => r.json()).catch(() => ({ related: [] })),
+  ]);
+
+  const items = res.results || [];
+  const images = imgs.images || [];
+  const related = rel.related || [];
+
+  // Render: first block = first result with image carousel, next blocks = rest
+  let html = '';
+  if (items.length) {
+    // First: rich result with image carousel
+    const r = items[0];
+    html += `<div class="result-block">
+      <div class="result-item" data-i="0">
+        <div class="result-head">
+          <div class="result-favicon"><img src="${faviconUrl(r.host||'')}" onerror="this.style.display='none';this.parentElement.classList.add('letter');this.parentElement.textContent='${(r.host||'').charAt(0).toUpperCase()}';" /></div>
+          <div class="result-meta"><div class="result-url">${esc('https://' + (r.host||''))}</div></div>
+          <div class="result-dots">⋮</div>
         </div>
-        <div class="result-title">${escapeHtml(r.title || '')}</div>
-        <div class="result-snippet">${escapeHtml(r.snippet || '')}</div>
+        <div class="result-title">${esc(r.title || '')}</div>
+        ${images.length ? `<div class="result-images">${images.slice(0, 6).map(img => `
+          <div class="result-image-tile" data-src="${escA(img.src||'')}" data-alt="${escA(img.alt||'')}"><img src="${escA(img.thumb || img.src)}" loading="lazy" onerror="this.parentElement.style.display='none';" /></div>
+        `).join('')}</div>` : ''}
+        <div class="result-snippet">${esc(r.snippet || '')}</div>
       </div>
-    `).join('');
-    list.querySelectorAll('.result-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const r = items[+el.dataset.i];
-        send({ type:'link_click', linkText: r.title, href: r.url });
-        openURL(r.url, r.title);
-      });
-    });
-    send({ type:'page_loaded', url: currentPage.url, title: currentPage.title });
-  } catch (e) {
-    count.textContent = 'Erreur de chargement';
+    </div>`;
+
+    // Next results
+    if (items.length > 1) {
+      html += `<div class="result-block">` + items.slice(1, 6).map((r, i) => `
+        <div class="result-item" data-i="${i+1}">
+          <div class="result-head">
+            <div class="result-favicon"><img src="${faviconUrl(r.host||'')}" onerror="this.style.display='none';this.parentElement.classList.add('letter');this.parentElement.textContent='${(r.host||'').charAt(0).toUpperCase()}';" /></div>
+            <div class="result-meta"><div class="result-url">${esc('https://' + (r.host||''))}</div></div>
+            <div class="result-dots">⋮</div>
+          </div>
+          <div class="result-title">${esc(r.title || '')}</div>
+          <div class="result-snippet">${esc(r.snippet || '')}</div>
+        </div>
+      `).join('') + `</div>`;
+    }
+
+    // Sections: Albums, Vidéos, Actualités (static placeholders based on query)
+    html += sectionBlock('Vidéos', 'Vidéos sur ' + query);
+    html += sectionBlock('Actualités', 'Actualités récentes sur ' + query);
+
+    // Recherches associées
+    if (related.length) {
+      html += `<div class="related-block">
+        <div class="related-title">Recherches associées</div>
+        <div class="related-chips">${related.map(r => `<div class="related-chip" data-q="${escA(r)}">${esc(r)}</div>`).join('')}</div>
+      </div>`;
+    }
+  } else {
+    html = '<div class="loading">Aucun résultat trouvé.</div>';
   }
+
+  content.innerHTML = html;
+
+  // Wire result items
+  content.querySelectorAll('.result-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.result-image-tile')) return;
+      const i = +el.dataset.i;
+      const r = items[i];
+      if (r) { send({ type:'link_click', linkText: r.title, href: r.url }); openURL(r.url, r.title, r.host); }
+    });
+  });
+  // Wire image tiles
+  content.querySelectorAll('.result-image-tile').forEach(el => {
+    el.addEventListener('click', () => {
+      const img = images[0]; // Approx
+      const target = el.querySelector('img');
+      send({ type:'image_tap', alt: el.dataset.alt, src: el.dataset.src, width: target ? target.naturalWidth : 0, height: target ? target.naturalHeight : 0 });
+    });
+  });
+  // Section expand/collapse
+  content.querySelectorAll('.section-header').forEach(el => el.addEventListener('click', () => el.closest('.section-block').classList.toggle('open')));
+  // Related chips → new search
+  content.querySelectorAll('.related-chip').forEach(el => el.addEventListener('click', () => doSearch(el.dataset.q)));
+
+  send({ type:'page_loaded', url: p.url, title: p.title });
 }
 
-function openURL(url, title) {
-  history.push(currentPage);
-  currentPage = { type:'webview', url, title };
-  tabs[0] = { title, host: hostFromUrl(url), type:'webview' };
+function sectionBlock(title, sub) {
+  return `<div class="section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <div class="section-title">${esc(title)}</div>
+        <div class="section-sub">${esc(sub)}</div>
+      </div>
+      <span class="section-chev"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+    </div>
+    <div class="section-body">
+      <div style="padding: 6px 0; color: var(--text-2); font-size: 14px;">Contenu à venir — ${esc(title.toLowerCase())}.</div>
+    </div>
+  </div>`;
+}
+
+// ===== WEBVIEW =====
+function openURL(url, title, host) {
+  activeTab().page = { type:'webview', url, title, host: host || hostFromUrl(url) };
+  currentPage = activeTab().page;
   updateBackBtn();
-  document.getElementById('home').style.display='none';
-  document.getElementById('results').classList.remove('active');
-  document.getElementById('webview').classList.add('active');
-  const frame = document.getElementById('webviewFrame');
-  frame.src = '/api/proxy?url=' + encodeURIComponent(url);
+  show('webview');
+  document.getElementById('webviewFrame').src = '/api/proxy?url=' + encodeURIComponent(url);
   updateUrlBar(hostFromUrl(url), true);
   send({ type:'navigation', url, title });
+  pushHistory({ title, url, host: host || hostFromUrl(url), type:'page' });
+}
+
+// ===== Show / hide views =====
+function show(which) {
+  document.getElementById('home').style.display = (which === 'home' ? 'block' : 'none');
+  document.getElementById('results').classList.toggle('active', which === 'results');
+  document.getElementById('webview').classList.toggle('active', which === 'webview');
 }
 
 function updateUrlBar(text, showReload) {
@@ -682,90 +799,261 @@ function updateUrlBar(text, showReload) {
   bar.classList.toggle('placeholder', !text);
   bar.classList.toggle('active', !!text);
   document.getElementById('urlBarReload').style.display = showReload ? 'flex' : 'none';
-  // Left side: show lock when on a page (https), aA when on home
   const left = document.getElementById('urlBarLeft');
   if (text) {
     left.innerHTML = `<span class="url-bar-lock"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a4 4 0 014 4v3h1a2 2 0 012 2v9a2 2 0 01-2 2H7a2 2 0 01-2-2v-9a2 2 0 012-2h1V6a4 4 0 014-4zm-2 7h4V6a2 2 0 10-4 0v3z"/></svg></span>`;
   } else {
     left.innerHTML = `<span class="url-bar-aA"><span class="small">a</span><span class="big">A</span></span>`;
   }
+  updateTabsCountBadge();
+}
+
+function updateTabsCountBadge() {
+  const badge = document.getElementById('tabsCountToolbar');
+  if (tabs.length > 1) { badge.style.display = 'block'; badge.textContent = tabs.length; }
+  else badge.style.display = 'none';
 }
 
 function reload() {
   if (currentPage.type === 'webview') {
-    const frame = document.getElementById('webviewFrame');
-    frame.src = frame.src;
-  } else if (currentPage.type === 'results') {
-    showResults(currentPage.query);
-  }
+    const f = document.getElementById('webviewFrame'); f.src = f.src;
+  } else if (currentPage.type === 'results') showResults(currentPage.query);
 }
 
+// ===== Back / Forward =====
 function goBack() {
-  if (history.length === 0) { goHome(); return; }
-  const prev = history.pop();
-  send({ type:'navigation', url: prev.url || 'home', title: prev.title || 'Favoris', backButton: true });
-  if (prev.type === 'home') goHome(false);
-  else if (prev.type === 'results') {
-    currentPage = prev;
-    document.getElementById('home').style.display='none';
-    document.getElementById('results').classList.add('active');
-    document.getElementById('webview').classList.remove('active');
-    showResults(prev.query);
-  } else if (prev.type === 'webview') {
-    openURL(prev.url, prev.title);
-    history.pop();
-  }
-  updateBackBtn();
+  // Go to home from results/webview (simple flow: always back to home)
+  if (currentPage.type === 'webview') {
+    // From webview, go to results (if exists in history) or home
+    const prev = historyItems.find(h => h.type === 'search');
+    if (prev && prev.type === 'search') {
+      const q = prev.title.replace(/ — Recherche Google$/, '');
+      showResults(q);
+    } else goHome();
+  } else if (currentPage.type === 'results') goHome();
+  else goHome();
+  send({ type:'navigation', url: currentPage.url || 'home', title: currentPage.title, backButton: true });
 }
 function goForward() {}
-function goHome(pushHistory = true) {
-  if (pushHistory) history.push(currentPage);
+function goHome() {
   currentPage = { type:'home', url:'', title:'Favoris' };
-  tabs[0] = { title:'Favoris', host:'', type:'home' };
-  document.getElementById('home').style.display='block';
-  document.getElementById('results').classList.remove('active');
-  document.getElementById('webview').classList.remove('active');
+  activeTab().page = currentPage;
+  show('home');
   updateUrlBar('', false);
   updateBackBtn();
 }
-function updateBackBtn() {
-  const btn = document.getElementById('backBtn');
-  btn.classList.toggle('disabled', history.length === 0 && currentPage.type === 'home');
-}
+function updateBackBtn() { document.getElementById('backBtn').classList.toggle('disabled', currentPage.type === 'home'); }
 
 function doShare() {}
-function doBookmarks() {}
 
-// ===== Tabs overlay =====
-function openTabs() {
-  const overlay = document.getElementById('tabsOverlay');
-  overlay.classList.add('active');
-  const grid = document.getElementById('tabsGrid');
-  document.getElementById('tabsCount').textContent = tabs.length + ' onglet' + (tabs.length>1?'s':'');
-  grid.innerHTML = tabs.map((t, i) => {
-    const fav = t.host ? `<img src="${faviconUrl(t.host)}" onerror="this.style.display='none';" />` : '';
-    return `
-      <div class="tab-card ${i===0?'active':''}" data-i="${i}">
-        <div class="tab-card-header">
-          <div class="tab-card-favicon">${fav}</div>
-          <div class="tab-card-title">${escapeHtml(t.host || t.title || 'Favoris')}</div>
-          <div class="tab-card-close">✕</div>
-        </div>
-        <div class="tab-card-body">${escapeHtml(t.title || '')}</div>
+function hostFromUrl(u) { try { return new URL(u).hostname.replace(/^www\./,''); } catch { return u||''; } }
+
+// ===== History =====
+function pushHistory(item) {
+  historyItems.unshift(Object.assign({ ts: Date.now() }, item));
+  if (historyItems.length > 200) historyItems = historyItems.slice(0, 200);
+  localStorage.setItem('einstein_history', JSON.stringify(historyItems));
+}
+
+// ===== Sheet (Bookmarks / Reading list / History) =====
+let sheetTab = 'bookmarks'; // bookmarks | reading | history
+function openSheet() {
+  document.getElementById('sheetBg').classList.add('active');
+  document.getElementById('sheet').classList.add('active');
+  renderSheet();
+}
+function closeSheet() {
+  document.getElementById('sheetBg').classList.remove('active');
+  document.getElementById('sheet').classList.remove('active');
+}
+
+function renderSheet() {
+  const scroll = document.getElementById('sheetScroll');
+  // Header: recently saved
+  let html = `<div class="sheet-section-title">Enregistrés récemment <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>`;
+  const recent = historyItems.slice(0, 5);
+  if (recent.length) {
+    html += `<div style="display:flex; gap:10px; overflow-x:auto; padding: 0 0 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none;">`;
+    html += recent.map(r => `
+      <div class="recent-card" data-url="${escA(r.url||'')}" data-title="${escA(r.title||'')}" data-host="${escA(r.host||'')}">
+        <div class="recent-card-fav"><img src="${faviconUrl(r.host||'')}" onerror="this.style.display='none';"/></div>
+        <div class="recent-card-q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16 16l4 4"/></svg>${esc(r.title||'').replace(/ — Recherche Google$/, '').slice(0, 24)}${(r.title||'').length>24?'…':''}</div>
+        <div class="recent-card-host">${esc(r.host || '')}</div>
+        <div class="recent-card-tag">🔖 Signets</div>
       </div>
-    `;
-  }).join('');
-  grid.querySelectorAll('.tab-card').forEach(el => el.addEventListener('click', () => closeTabs()));
+    `).join('');
+    html += `</div>`;
+  }
+
+  // Segmented control
+  html += `<div class="segmented" id="segmented">
+    <div class="segment ${sheetTab==='bookmarks'?'active':''}" data-tab="bookmarks"><svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h14v16H6a2 2 0 01-2-2V6z"/><path d="M20 18H6a2 2 0 000 4h14"/></svg></div>
+    <div class="segment ${sheetTab==='reading'?'active':''}" data-tab="reading"><svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M11 12h2"/></svg></div>
+    <div class="segment ${sheetTab==='history'?'active':''}" data-tab="history"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></div>
+  </div>`;
+
+  if (sheetTab === 'bookmarks') {
+    if (bookmarks.length === 0) {
+      html += `<div class="empty-state"><div class="empty-state-icon">📖</div><div class="empty-state-text">Aucun signet</div></div>`;
+    } else {
+      html += `<div class="hist-list">` + bookmarks.map(b => renderHistItem(b)).join('') + `</div>`;
+    }
+  } else if (sheetTab === 'reading') {
+    if (readingList.length === 0) {
+      html += `<div class="empty-state"><div class="empty-state-icon">👓</div><div class="empty-state-text">Liste de lecture vide</div></div>`;
+    } else {
+      html += `<div class="hist-list">` + readingList.map(b => renderHistItem(b)).join('') + `</div>`;
+    }
+  } else {
+    // history grouped by date
+    const groups = groupHistoryByDay(historyItems);
+    if (groups.length === 0) {
+      html += `<div class="empty-state"><div class="empty-state-icon">🕐</div><div class="empty-state-text">Aucun historique</div></div>`;
+    } else {
+      html += groups.map(g => `
+        <div class="hist-group-title">${esc(g.label)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+        <div class="hist-list">${g.items.map(renderHistItem).join('')}</div>
+      `).join('');
+    }
+  }
+
+  scroll.innerHTML = html;
+
+  // Wire interactions
+  scroll.querySelectorAll('.segment').forEach(s => s.addEventListener('click', () => {
+    sheetTab = s.dataset.tab;
+    renderSheet();
+  }));
+  scroll.querySelectorAll('.recent-card').forEach(c => c.addEventListener('click', () => {
+    const url = c.dataset.url, title = c.dataset.title, host = c.dataset.host;
+    closeSheet();
+    send({ type:'link_click', linkText: title, href: url });
+    openURL(url, title, host);
+  }));
+  scroll.querySelectorAll('.hist-item').forEach(el => el.addEventListener('click', () => {
+    const url = el.dataset.url, title = el.dataset.title, host = el.dataset.host, type = el.dataset.type;
+    closeSheet();
+    if (type === 'search') {
+      const q = title.replace(/ — Recherche Google$/, '');
+      doSearch(q);
+    } else {
+      openURL(url, title, host);
+    }
+  }));
+}
+
+function renderHistItem(it) {
+  return `<div class="hist-item" data-url="${escA(it.url||'')}" data-title="${escA(it.title||'')}" data-host="${escA(it.host||'')}" data-type="${escA(it.type||'')}">
+    <div class="hist-favicon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg></div>
+    <div class="hist-body">
+      <div class="hist-title">${esc(it.title || '')}</div>
+      <div class="hist-url">${esc(it.url || '')}</div>
+    </div>
+  </div>`;
+}
+
+function groupHistoryByDay(items) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterday = today - 86400000;
+  const thisWeek = today - 7 * 86400000;
+  const groups = { 'Ce soir': [], 'Hier': [], 'Cette semaine': [], 'Avant': [] };
+  for (const it of items) {
+    if (it.ts >= today) groups['Ce soir'].push(it);
+    else if (it.ts >= yesterday) groups['Hier'].push(it);
+    else if (it.ts >= thisWeek) groups['Cette semaine'].push(it);
+    else groups['Avant'].push(it);
+  }
+  return Object.entries(groups).filter(([, arr]) => arr.length).map(([label, items]) => ({ label, items }));
+}
+
+// ===== TABS =====
+function openTabs() {
+  activeTab().preview = capturePreview();
+  document.getElementById('tabsOverlay').classList.add('active');
+  renderTabs();
 }
 function closeTabs() { document.getElementById('tabsOverlay').classList.remove('active'); }
-function newTab() { closeTabs(); goHome(); }
+function renderTabs() {
+  const grid = document.getElementById('tabsGrid');
+  document.getElementById('tabsCountPill').textContent = tabs.length + ' onglet' + (tabs.length > 1 ? 's' : '');
+  grid.innerHTML = tabs.map((t, i) => `
+    <div class="tab-card ${i===activeTabIndex?'active':''}" data-i="${i}">
+      <div class="tab-card-body ${t.preview?'has-preview':''}">
+        ${t.preview ? `<img src="${escA(t.preview)}" alt="" />` : (t.page.type === 'home' ? 'Favoris' : esc(t.page.title || 'Nouvel onglet'))}
+      </div>
+      <div class="tab-card-footer">
+        <div class="tab-card-favicon">${t.page.host ? `<img src="${faviconUrl(t.page.host)}" onerror="this.style.display='none';" />` : '•'}</div>
+        <div class="tab-card-title">${esc(t.page.host || t.page.title || 'Favoris')}</div>
+        <div class="tab-card-close" data-close="${i}">×</div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.tab-card').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('[data-close]')) return;
+      activateTab(+el.dataset.i);
+    });
+  });
+  grid.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeTab(+b.dataset.close);
+  }));
+}
+function activateTab(i) {
+  activeTabIndex = i;
+  currentPage = activeTab().page;
+  if (currentPage.type === 'home') goHome();
+  else if (currentPage.type === 'results') showResults(currentPage.query);
+  else if (currentPage.type === 'webview') {
+    show('webview');
+    document.getElementById('webviewFrame').src = '/api/proxy?url=' + encodeURIComponent(currentPage.url);
+    updateUrlBar(hostFromUrl(currentPage.url), true);
+  }
+  closeTabs();
+  updateTabsCountBadge();
+}
+function closeTab(i) {
+  tabs.splice(i, 1);
+  if (tabs.length === 0) tabs.push({ id: tabId(), page: { type:'home', url:'', title:'Favoris' }, private: false, preview: null });
+  activeTabIndex = Math.min(activeTabIndex, tabs.length - 1);
+  renderTabs();
+  updateTabsCountBadge();
+}
+function newTab() {
+  tabs.push({ id: tabId(), page: { type:'home', url:'', title:'Favoris' }, private: privateMode, preview: null });
+  activeTabIndex = tabs.length - 1;
+  activateTab(activeTabIndex);
+}
+function togglePrivate() {
+  privateMode = !privateMode;
+  document.querySelector('.tabs-private-toggle').style.background = privateMode ? 'rgba(255,255,255,0.2)' : 'transparent';
+}
+function capturePreview() {
+  // Lightweight "preview": we just take a screenshot of title — real screenshot would need html2canvas
+  return null;
+}
 
-// ===== Helpers =====
-function hostFromUrl(u) { try { return new URL(u).hostname.replace(/^www\./,''); } catch { return u||''; } }
-function escapeHtml(s) { if(s==null)return''; return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-function escapeAttr(s) { return escapeHtml(s); }
+// ===== iframe messages =====
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.__einstein) {
+    const d = e.data;
+    if (d.type === 'linkClick') send({ type:'link_click', linkText: d.text, href: d.href });
+    if (d.type === 'imageTap') send({ type:'image_tap', alt: d.alt, src: d.src, width: d.width, height: d.height });
+    if (d.type === 'scroll') send({ type:'scroll', offsetY: d.offsetY, contentHeight: d.contentHeight, viewHeight: d.viewHeight, direction: d.direction });
+    if (d.type === 'keystroke') send({ type:'keystroke', character: d.character, currentText: d.currentText, source:'iframe' });
+    if (d.type === 'search') send({ type:'search', query: d.query, source:'iframe' });
+    if (d.type === 'navigation') {
+      currentPage = { type:'webview', url: d.url, title: d.title };
+      activeTab().page = currentPage;
+      updateUrlBar(hostFromUrl(d.url), true);
+      send({ type:'page_loaded', url: d.url, title: d.title });
+      pushHistory({ title: d.title, url: d.url, host: hostFromUrl(d.url), type:'page' });
+    }
+  }
+});
 
-// Track scroll
+// ===== Scroll tracking =====
 let lastScroll = 0, scrollThrottle = null;
 document.getElementById('content').addEventListener('scroll', (e) => {
   if (scrollThrottle) return;
@@ -778,25 +1066,7 @@ document.getElementById('content').addEventListener('scroll', (e) => {
   }, 300);
 });
 
-// iframe events
-window.addEventListener('message', (e) => {
-  if (e.data && e.data.__einstein) {
-    const d = e.data;
-    if (d.type === 'linkClick') send({ type:'link_click', linkText: d.text, href: d.href });
-    if (d.type === 'imageTap') send({ type:'image_tap', alt: d.alt, src: d.src, width: d.width, height: d.height });
-    if (d.type === 'scroll') send({ type:'scroll', offsetY: d.offsetY, contentHeight: d.contentHeight, viewHeight: d.viewHeight, direction: d.direction });
-    if (d.type === 'keystroke') send({ type:'keystroke', character: d.character, currentText: d.currentText, source:'iframe' });
-    if (d.type === 'search') send({ type:'search', query: d.query, source:'iframe' });
-    if (d.type === 'navigation') {
-      currentPage = { type:'webview', url: d.url, title: d.title };
-      tabs[0] = { title: d.title, host: hostFromUrl(d.url), type:'webview' };
-      updateUrlBar(hostFromUrl(d.url), true);
-      send({ type:'page_loaded', url: d.url, title: d.title });
-    }
-  }
-});
-
-// Lifecycle
+// ===== Lifecycle =====
 window.addEventListener('pagehide', () => send({ type:'app_state', state:'background' }));
 window.addEventListener('pageshow', (e) => {
   send({ type:'app_state', state:'active', fromCache: !!e.persisted });
@@ -810,10 +1080,15 @@ document.addEventListener('visibilitychange', () => {
 });
 setInterval(() => { if (ws && ws.readyState === 1) send({ type:'ping' }); }, 25000);
 
-// Init
+// ===== Helpers =====
+function esc(s) { if(s==null)return''; return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function escA(s) { return esc(s); }
+
+// ===== Init =====
 renderFavorites();
 connectWS();
 send({ type:'app_state', state:'launched' });
+updateTabsCountBadge();
 </script>
 </body>
 </html>

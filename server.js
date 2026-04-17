@@ -137,6 +137,72 @@ app.get('/api/search', async (req, res) => {
     }
 });
 
+// Search suggestions — Google autocomplete endpoint (CORS-friendly with proxy)
+app.get('/api/suggest', async (req, res) => {
+    const q = (req.query.q || '').toString().trim();
+    if (!q) return res.json({ suggestions: [] });
+    try {
+        const r = await fetch('https://suggestqueries.google.com/complete/search?client=firefox&hl=fr&q=' + encodeURIComponent(q), {
+            headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1' }
+        });
+        const data = await r.json();
+        res.json({ suggestions: data[1] || [] });
+    } catch (e) { res.json({ suggestions: [] }); }
+});
+
+// Image search — scrape DuckDuckGo with proper vqd token flow
+app.get('/api/images', async (req, res) => {
+    const q = (req.query.q || '').toString().trim();
+    if (!q) return res.json({ images: [] });
+    try {
+        // Step 1: get vqd token
+        const pageRes = await fetch('https://duckduckgo.com/?q=' + encodeURIComponent(q), {
+            headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1' }
+        });
+        const html = await pageRes.text();
+        const vqdMatch = html.match(/vqd=["']?([^"'&]+)/);
+        if (!vqdMatch) return res.json({ images: [] });
+        const vqd = vqdMatch[1];
+        // Step 2: fetch image results
+        const imgRes = await fetch(`https://duckduckgo.com/i.js?l=fr-fr&o=json&q=${encodeURIComponent(q)}&vqd=${vqd}&f=,,,&p=1`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1',
+                'Accept': 'application/json',
+                'Referer': 'https://duckduckgo.com/'
+            }
+        });
+        const data = await imgRes.json();
+        const images = (data.results || []).slice(0, 12).map(img => ({
+            src: img.image, thumb: img.thumbnail, alt: img.title,
+            width: img.width, height: img.height, source: img.source, url: img.url
+        }));
+        res.json({ images });
+    } catch (e) {
+        console.error('[/api/images]', e.message);
+        res.json({ images: [] });
+    }
+});
+
+// Related searches — scrape DuckDuckGo
+app.get('/api/related', async (req, res) => {
+    const q = (req.query.q || '').toString().trim();
+    if (!q) return res.json({ related: [] });
+    try {
+        const r = await fetch('https://html.duckduckgo.com/html/?q=' + encodeURIComponent(q), {
+            headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1' }
+        });
+        const html = await r.text();
+        const related = [];
+        const rx = /<a[^>]+class="related-[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
+        let m;
+        while ((m = rx.exec(html)) !== null && related.length < 8) {
+            const t = stripHtml(m[1]).trim();
+            if (t && !related.includes(t)) related.push(t);
+        }
+        res.json({ related });
+    } catch (e) { res.json({ related: [] }); }
+});
+
 // Proxy a remote page through our server to bypass X-Frame-Options / CORS
 app.get('/api/proxy', async (req, res) => {
     const target = (req.query.url || '').toString();
