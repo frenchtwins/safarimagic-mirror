@@ -755,7 +755,16 @@ const FAVORITES = [
   { name:'Instagram',           url:'https://www.instagram.com',      host:'instagram.com' },
   { name:'Wikipedia',           url:'https://fr.wikipedia.org',       host:'wikipedia.org' },
 ];
+// Multi-CDN favicon with fallback chain for best quality on home grid
 const faviconUrl = (host) => `https://icons.duckduckgo.com/ip3/${host}.ico`;
+const faviconUrlHQ = (host) => `https://www.google.com/s2/favicons?sz=128&domain=${host}`;
+// Favicon img with fallback chain: Google HQ → DuckDuckGo → letter
+function favIconHtml(host, name) {
+  const letter = (name || host || '?').charAt(0).toUpperCase();
+  return `<img src="${faviconUrlHQ(host)}" alt="${esc(name||host||'')}" loading="lazy"
+    onerror="this.onerror=null;this.src='${faviconUrl(host)}';this.dataset.fallback='1';"
+    data-letter="${esc(letter)}" />`;
+}
 
 // ===== State =====
 let ws = null;
@@ -813,9 +822,7 @@ function renderFavorites() {
   const list = favoritesExpanded ? FAVORITES : FAVORITES.slice(0, 8);
   grid.innerHTML = list.map((f, i) => `
     <div class="fav" data-i="${i}">
-      <div class="fav-icon">
-        <img src="${faviconUrl(f.host)}" alt="${esc(f.name)}" loading="lazy" onerror="this.style.display='none'; this.parentElement.style.background='#8e8e93'; this.parentElement.textContent='${esc(f.name.charAt(0))}'; this.parentElement.style.color='#fff'; this.parentElement.style.fontSize='24px'; this.parentElement.style.fontWeight='700';" />
-      </div>
+      <div class="fav-icon">${favIconHtml(f.host, f.name)}</div>
       <div class="fav-label">${esc(f.name)}</div>
     </div>
   `).join('');
@@ -886,11 +893,20 @@ function renderSuggestions() {
 
 // ===== SEARCH OVERLAY =====
 function openSearch() {
-  document.getElementById('searchOverlay').classList.add('active');
+  const overlay = document.getElementById('searchOverlay');
+  overlay.classList.add('active');
   const input = document.getElementById('searchInput');
-  input.value = ''; input.focus();
-  typingBuffer = '';
-  renderSuggestions('');
+  // Pre-fill with current host (like real Safari — makes editing feel right)
+  if (currentPage.type === 'webview' || currentPage.type === 'results') {
+    input.value = currentPage.type === 'results' ? (currentPage.query || '') : hostFromUrl(currentPage.url);
+    input.setSelectionRange(0, input.value.length); // Auto-select all
+  } else {
+    input.value = '';
+  }
+  typingBuffer = input.value;
+  // Delay focus to let animation start
+  setTimeout(() => { input.focus(); input.setSelectionRange(0, input.value.length); }, 50);
+  renderSuggestions(input.value);
   send({ type:'app_state', note:'search_opened' });
 }
 function closeSearch() {
